@@ -3,8 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const dashboardRoutes = require('./routes/dashboard');
-
-
+const circleRoutes = require('./routes/circle');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 
@@ -73,6 +72,8 @@ app.use((err, req, res, next) => {
   });
 });
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/circles', circleRoutes);
+
 
 
 module.exports = app;
