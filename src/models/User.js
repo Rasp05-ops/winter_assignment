@@ -105,6 +105,40 @@ User.prototype.getPublicProfile = function() {
     updatedAt: this.updatedAt
   };
 };
+const Circle = require('./Circle');
+const CircleMember = require('./CircleMember');
+const CirclePost = require('./CirclePost');
+const MoodLog = require('./MoodLog');
+const Journal = require('./Journal');
+
+// Define associations
+User.hasMany(Circle, { foreignKey: 'createdBy', as: 'createdCircles' });
+User.hasMany(CircleMember, { foreignKey: 'userId', as: 'circleMemberships' });
+User.hasMany(CirclePost, { foreignKey: 'userId', as: 'posts' });
+User.hasMany(MoodLog, { foreignKey: 'userId', as: 'moodLogs' });
+User.hasMany(Journal, { foreignKey: 'userId', as: 'journals' });
+
+Circle.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+Circle.hasMany(CircleMember, { foreignKey: 'circleId', as: 'members' });
+Circle.hasMany(CirclePost, { foreignKey: 'circleId', as: 'posts' });
+
+CircleMember.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+CircleMember.belongsTo(Circle, { foreignKey: 'circleId', as: 'circle' });
+
+CirclePost.belongsTo(User, { foreignKey: 'userId', as: 'author' });
+CirclePost.belongsTo(Circle, { foreignKey: 'circleId', as: 'circle' });
+
+MoodLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Journal.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+const PostComment = require('./PostComment');
+User.hasMany(PostComment, { foreignKey: 'userId', as: 'comments' });
+PostComment.belongsTo(User, { foreignKey: 'userId', as: 'author' });
+
+const CirclePost = require('./CirclePost');
+CirclePost.hasMany(PostComment, { foreignKey: 'postId', as: 'comments' });
+PostComment.belongsTo(CirclePost, { foreignKey: 'postId', as: 'post' });
+
 
 module.exports = User;
 

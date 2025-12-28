@@ -2,6 +2,8 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+const dashboardRoutes = require('./routes/dashboard');
+
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
@@ -70,5 +72,7 @@ app.use((err, req, res, next) => {
     message: 'An unexpected error occurred'
   });
 });
+app.use('/api/dashboard', dashboardRoutes);
+
 
 module.exports = app;
