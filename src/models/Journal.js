@@ -22,24 +22,24 @@ const Journal = sequelize.define('Journal', {
       len: [1, 200]
     }
   },
-  content: {
+  body: {
     type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       len: [1, 10000]
     }
   },
-  mood: {
-    type: DataTypes.ENUM('great', 'good', 'okay', 'bad', 'terrible'),
-    allowNull: true
+  visibility: {
+    type: DataTypes.ENUM('private', 'circles', 'public'),
+    defaultValue: 'private'
+  },
+  sharedCircles: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
+    defaultValue: []
   },
   tags: {
     type: DataTypes.ARRAY(DataTypes.STRING(30)),
     defaultValue: []
-  },
-  isPrivate: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true
   },
   isFavorite: {
     type: DataTypes.BOOLEAN,
@@ -48,8 +48,9 @@ const Journal = sequelize.define('Journal', {
 }, {
   tableName: 'journals',
   indexes: [
-    { fields: ['user_id', 'created_at'] },    // ✅ Fixed
-    { fields: ['user_id', 'is_favorite'] }    // ✅ Fixed
+    { fields: ['user_id', 'created_at'] },
+    { fields: ['user_id', 'is_favorite'] },
+    { fields: ['visibility'] }
   ]
 });
 

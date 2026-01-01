@@ -7,6 +7,7 @@ const circleRoutes = require('./routes/circle');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const moodLogRoutes = require('./routes/moodLog');
+const journalRoutes = require('./routes/journal');
 
 
 const app = express();
@@ -47,6 +48,8 @@ app.use((req, res) => {
     message: 'The requested resource was not found' 
   });
 });
+app.use('/api/journals', journalRoutes);
+
 
 // Global error handler
 app.use((err, req, res, next) => {
