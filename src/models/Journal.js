@@ -48,8 +48,8 @@ const Journal = sequelize.define('Journal', {
 }, {
   tableName: 'journals',
   indexes: [
-    { fields: ['userId', 'createdAt'] },
-    { fields: ['userId', 'isFavorite'] }
+    { fields: ['user_id', 'created_at'] },    // ✅ Fixed
+    { fields: ['user_id', 'is_favorite'] }    // ✅ Fixed
   ]
 });
 

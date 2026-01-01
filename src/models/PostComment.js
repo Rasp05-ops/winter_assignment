@@ -38,8 +38,8 @@ const PostComment = sequelize.define('PostComment', {
 }, {
   tableName: 'post_comments',
   indexes: [
-    { fields: ['postId', 'createdAt'] },
-    { fields: ['userId'] }
+    { fields: ['post_id', 'created_at'] },  // ✅ Use snake_case
+    { fields: ['user_id'] }                  // ✅ Use snake_case
   ]
 });
 

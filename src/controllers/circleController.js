@@ -80,6 +80,10 @@ exports.getAllCircles = async (req, res) => {
           userRole: membership ? membership.role : null
         };
       })
+
+
+
+      
     );
 
     res.json({

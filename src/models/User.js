@@ -135,7 +135,6 @@ const PostComment = require('./PostComment');
 User.hasMany(PostComment, { foreignKey: 'userId', as: 'comments' });
 PostComment.belongsTo(User, { foreignKey: 'userId', as: 'author' });
 
-const CirclePost = require('./CirclePost');
 CirclePost.hasMany(PostComment, { foreignKey: 'postId', as: 'comments' });
 PostComment.belongsTo(CirclePost, { foreignKey: 'postId', as: 'post' });
 

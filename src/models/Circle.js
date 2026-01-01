@@ -44,12 +44,9 @@ const Circle = sequelize.define('Circle', {
     defaultValue: false
   },
   createdBy: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id'
-    }
+  type: DataTypes.UUID,
+  allowNull: false,
+  field: 'created_by'
   },
   coverImage: {
     type: DataTypes.STRING(255),
@@ -59,7 +56,7 @@ const Circle = sequelize.define('Circle', {
   tableName: 'circles',
   indexes: [
     { fields: ['category'] },
-    { fields: ['createdBy'] },
+    { fields: ['created_by'] },
     { fields: ['tags'], using: 'gin' }
   ]
 });

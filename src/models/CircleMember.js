@@ -31,21 +31,16 @@ const CircleMember = sequelize.define('CircleMember', {
     type: DataTypes.ENUM('active', 'pending', 'rejected', 'left'),
     defaultValue: 'active'
   },
-
   joinedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
-  },
-  isActive: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true
   }
 }, {
   tableName: 'circle_members',
   indexes: [
-    { unique: true, fields: ['userId', 'circleId'] },
-    { fields: ['circleId'] },
-    { fields: ['userId'] }
+    { unique: true, fields: ['user_id', 'circle_id'] },  // ✅ Fixed
+    { fields: ['circle_id', 'status'] },                  // ✅ Fixed
+    { fields: ['user_id', 'status'] }                     // ✅ Fixed
   ]
 });
 

@@ -55,11 +55,10 @@ const MoodLog = sequelize.define('MoodLog', {
 }, {
   tableName: 'mood_logs',
   indexes: [
-    { unique: true, fields: ['userId', 'date'] },
-    { fields: ['userId', 'createdAt'] },
+    { unique: true, fields: ['user_id', 'date'] },  // ✅ Fixed
+    { fields: ['user_id', 'created_at'] },          // ✅ Fixed
     { fields: ['date'] }
   ]
 });
 
 module.exports = MoodLog;
-

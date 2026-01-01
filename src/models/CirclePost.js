@@ -13,7 +13,8 @@ const CirclePost = sequelize.define('CirclePost', {
     references: {
       model: 'circles',
       key: 'id'
-    }
+    },
+    onDelete: 'CASCADE'
   },
   userId: {
     type: DataTypes.UUID,
@@ -53,8 +54,8 @@ const CirclePost = sequelize.define('CirclePost', {
 }, {
   tableName: 'circle_posts',
   indexes: [
-    { fields: ['circleId', 'createdAt'] },
-    { fields: ['userId'] }
+    { fields: ['circle_id', 'created_at'] },  // ✅ Fixed
+    { fields: ['user_id'] }                    // ✅ Fixed
   ]
 });
 
