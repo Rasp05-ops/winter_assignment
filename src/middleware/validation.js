@@ -17,12 +17,12 @@ const signupValidation = [
   body('email')
     .isEmail()
     .normalizeEmail()
-    .withMessage('Please provide a valid email address'),
+    .withMessage('pls check your email '),
   body('username')
     .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
+    .withMessage('check limits!!!')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores'),
+    .withMessage('only lettera,no.s,underscores allowed'),
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long')

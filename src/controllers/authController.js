@@ -118,8 +118,6 @@ exports.changePassword = async (req, res) => {
         message: 'Current password is incorrect' 
       });
     }
-    
-    // Update password
     user.password = newPassword;
     await user.save();
     
