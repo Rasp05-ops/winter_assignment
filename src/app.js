@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const moodLogRoutes = require('./routes/moodLog');
 const journalRoutes = require('./routes/journal');
+const searchRoutes = require('./routes/search');
 
 
 const app = express();
@@ -79,6 +80,7 @@ app.use((err, req, res, next) => {
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/circles', circleRoutes);
 app.use('/api/mood-logs', moodLogRoutes);
+app.use('/api/search', searchRoutes);
 
 
 

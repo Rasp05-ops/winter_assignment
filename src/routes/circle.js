@@ -1,3 +1,4 @@
+// src/routes/circle.js
 const express = require('express');
 const router = express.Router();
 const circleController = require('../controllers/circleController');
@@ -45,31 +46,30 @@ router.use(authenticate);
 
 // ===== CIRCLE MANAGEMENT =====
 router.get('/', circleController.getAllCircles);
-router.get('/:circleId', circleController.getCircleById);
+router.get('/:circleId', circleController.getCircle);
 router.post('/', validate(createCircleValidation), circleController.createCircle);
 router.post('/:circleId/join', circleController.joinCircle);
 router.post('/:circleId/leave', circleController.leaveCircle);
 
 // ===== CIRCLE ADMIN =====
-router.get('/:circleId/members', circleController.getCircleMembers);
+router.get('/:circleId/members', circleController.getMembers);
 router.get('/:circleId/join-requests', circleController.getJoinRequests);
-router.post('/:circleId/join-requests/:membershipId/approve', circleController.approveJoinRequest);
-router.post('/:circleId/join-requests/:membershipId/reject', circleController.rejectJoinRequest);
+router.post('/:circleId/join-requests/:membershipId/approve', circleController.approveRequest);
+router.post('/:circleId/join-requests/:membershipId/reject', circleController.rejectRequest);
 router.patch('/:circleId', circleController.updateCircle);
 router.delete('/:circleId/members/:memberId', circleController.removeMember);
 router.patch('/:circleId/members/:memberId/promote', circleController.promoteMember);
 
 // ===== CIRCLE FEED (POSTS) =====
-router.get('/:circleId/posts', circleController.getCirclePosts);
+router.get('/:circleId/posts', circleController.getPosts);
 router.post('/:circleId/posts', validate(createPostValidation), circleController.createPost);
 router.patch('/posts/:postId', validate(createPostValidation), circleController.updatePost);
 router.delete('/posts/:postId', circleController.deletePost);
 
 // ===== COMMENTS =====
-router.get('/posts/:postId/comments', circleController.getPostComments);
+router.get('/posts/:postId/comments', circleController.getComments);
 router.post('/posts/:postId/comments', validate(createCommentValidation), circleController.createComment);
 router.patch('/comments/:commentId', validate(createCommentValidation), circleController.updateComment);
 router.delete('/comments/:commentId', circleController.deleteComment);
 
 module.exports = router;
-
