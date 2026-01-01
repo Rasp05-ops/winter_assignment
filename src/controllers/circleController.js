@@ -1,372 +1,16 @@
+// src/controllers/circleController.js
 const Circle = require('../models/Circle');
 const CircleMember = require('../models/CircleMember');
 const CirclePost = require('../models/CirclePost');
 const PostComment = require('../models/PostComment');
 const User = require('../models/User');
 const { Op } = require('sequelize');
-const { sequelize } = require('../config/database');
-const upload = require('../middleware/upload');
-const fs = require('fs');
-const path = require('path');
 
-// ========== CIRCLE MANAGEMENT ==========
+// ==================== HELPER FUNCTIONS ====================
 
-// Get all circles (public + user's circles)
-exports.getAllCircles = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { category, search, visibility } = req.query;
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = parseInt(req.query.offset) || 0;
-
-    let whereClause = {};
-
-    // Filter by category
-    if (category) {
-      whereClause.category = category;
-    }
-
-    // Filter by visibility
-    if (visibility === 'public') {
-      whereClause.isPrivate = false;
-    } else if (visibility === 'private') {
-      whereClause.isPrivate = true;
-    }
-
-    // Search by name or tags
-    if (search) {
-      whereClause[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%` } },
-        { description: { [Op.iLike]: `%${search}%` } },
-        { tags: { [Op.contains]: [search.toLowerCase()] } }
-      ];
-    }
-
-    const circles = await Circle.findAll({
-      where: whereClause,
-      include: [
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'username', 'displayName', 'profilePicture']
-        }
-      ],
-      limit: limit + 1,
-      offset,
-      order: [['memberCount', 'DESC'], ['createdAt', 'DESC']]
-    });
-
-    const hasMore = circles.length > limit;
-    const circleList = hasMore ? circles.slice(0, -1) : circles;
-
-    // Check membership status for each circle
-    const circlesWithStatus = await Promise.all(
-      circleList.map(async (circle) => {
-        const membership = await CircleMember.findOne({
-          where: { userId, circleId: circle.id }
-        });
-
-        return {
-          id: circle.id,
-          name: circle.name,
-          description: circle.description,
-          category: circle.category,
-          tags: circle.tags,
-          memberCount: circle.memberCount,
-          isPrivate: circle.isPrivate,
-          coverImage: circle.coverImage,
-          creator: circle.creator,
-          membershipStatus: membership ? membership.status : 'not_member',
-          userRole: membership ? membership.role : null
-        };
-      })
-
-
-
-      
-    );
-
-    res.json({
-      success: true,
-      circles: circlesWithStatus,
-      hasMore
-    });
-  } catch (error) {
-    console.error('Get circles error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch circles' 
-    });
-  }
-};
-
-// Get single circle details
-exports.getCircleById = async (req, res) => {
-  try {
-    const { circleId } = req.params;
-    const userId = req.userId;
-
-    const circle = await Circle.findByPk(circleId, {
-      include: [
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'username', 'displayName', 'profilePicture']
-        }
-      ]
-    });
-
-    if (!circle) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Circle not found' 
-      });
-    }
-
-    // Check user's membership
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId }
-    });
-
-    // If private and not a member, don't show full details
-    if (circle.isPrivate && (!membership || membership.status !== 'active')) {
-      return res.json({
-        success: true,
-        circle: {
-          id: circle.id,
-          name: circle.name,
-          description: circle.description,
-          category: circle.category,
-          tags: circle.tags,
-          memberCount: circle.memberCount,
-          isPrivate: true,
-          coverImage: circle.coverImage,
-          membershipStatus: membership ? membership.status : 'not_member',
-          creator: circle.creator
-        }
-      });
-    }
-
-    res.json({
-      success: true,
-      circle: {
-        id: circle.id,
-        name: circle.name,
-        description: circle.description,
-        category: circle.category,
-        tags: circle.tags,
-        memberCount: circle.memberCount,
-        isPrivate: circle.isPrivate,
-        coverImage: circle.coverImage,
-        createdAt: circle.createdAt,
-        creator: circle.creator,
-        membershipStatus: membership ? membership.status : 'not_member',
-        userRole: membership ? membership.role : null
-      }
-    });
-  } catch (error) {
-    console.error('Get circle error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch circle details' 
-    });
-  }
-};
-
-// Create new circle
-exports.createCircle = async (req, res) => {
-  try {
-    const { name, description, category, tags, isPrivate } = req.body;
-    const userId = req.userId;
-
-    const circle = await Circle.create({
-      name,
-      description,
-      category,
-      tags: tags || [],
-      isPrivate: isPrivate || false,
-      createdBy: userId,
-      memberCount: 1
-    });
-
-    // Creator automatically becomes admin member
-    await CircleMember.create({
-      userId,
-      circleId: circle.id,
-      role: 'admin',
-      status: 'active'
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Circle created successfully',
-      circle: {
-        id: circle.id,
-        name: circle.name,
-        description: circle.description,
-        category: circle.category,
-        tags: circle.tags,
-        isPrivate: circle.isPrivate,
-        coverImage: circle.coverImage,
-        memberCount: circle.memberCount
-      }
-    });
-  } catch (error) {
-    console.error('Create circle error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to create circle' 
-    });
-  }
-};
-
-// Join circle (public instantly, private sends request)
-exports.joinCircle = async (req, res) => {
-  try {
-    const { circleId } = req.params;
-    const userId = req.userId;
-
-    const circle = await Circle.findByPk(circleId);
-
-    if (!circle) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Circle not found' 
-      });
-    }
-
-    // Check if already a member
-    const existingMembership = await CircleMember.findOne({
-      where: { userId, circleId }
-    });
-
-    if (existingMembership) {
-      if (existingMembership.status === 'active') {
-        return res.status(400).json({ 
-          error: 'Already member',
-          message: 'You are already a member of this circle' 
-        });
-      } else if (existingMembership.status === 'pending') {
-        return res.status(400).json({ 
-          error: 'Request pending',
-          message: 'Your join request is pending approval' 
-        });
-      } else if (existingMembership.status === 'left') {
-        // Rejoin - update status
-        existingMembership.status = circle.isPrivate ? 'pending' : 'active';
-        existingMembership.joinedAt = new Date();
-        await existingMembership.save();
-
-        if (!circle.isPrivate) {
-          await circle.increment('memberCount');
-        }
-
-        return res.json({
-          success: true,
-          message: circle.isPrivate 
-            ? 'Join request sent successfully' 
-            : 'Joined circle successfully',
-          status: existingMembership.status
-        });
-      }
-    }
-
-    // Create membership
-    const status = circle.isPrivate ? 'pending' : 'active';
-    
-    await CircleMember.create({
-      userId,
-      circleId,
-      role: 'member',
-      status
-    });
-
-    // Increment member count only for public circles
-    if (!circle.isPrivate) {
-      await circle.increment('memberCount');
-    }
-
-    res.json({
-      success: true,
-      message: circle.isPrivate 
-        ? 'Join request sent successfully. Waiting for admin approval.' 
-        : 'Joined circle successfully',
-      status
-    });
-  } catch (error) {
-    console.error('Join circle error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to join circle' 
-    });
-  }
-};
-
-// Leave circle
-exports.leaveCircle = async (req, res) => {
-  try {
-    const { circleId } = req.params;
-    const userId = req.userId;
-
-    const circle = await Circle.findByPk(circleId);
-
-    if (!circle) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Circle not found' 
-      });
-    }
-
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId, status: 'active' }
-    });
-
-    if (!membership) {
-      return res.status(400).json({ 
-        error: 'Not a member',
-        message: 'You are not a member of this circle' 
-      });
-    }
-
-    // Check if user is creator/only admin
-    if (membership.role === 'admin') {
-      const adminCount = await CircleMember.count({
-        where: { circleId, role: 'admin', status: 'active' }
-      });
-
-      if (adminCount === 1) {
-        return res.status(400).json({ 
-          error: 'Cannot leave',
-          message: 'You are the only admin. Please promote another member to admin first or delete the circle.' 
-        });
-      }
-    }
-
-    // Update status to left
-    membership.status = 'left';
-    await membership.save();
-
-    // Decrement member count
-    await circle.decrement('memberCount');
-
-    res.json({
-      success: true,
-      message: 'Left circle successfully'
-    });
-  } catch (error) {
-    console.error('Leave circle error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to leave circle' 
-    });
-  }
-};
-
-// ========== CIRCLE ADMIN TOOLS ==========
-
-// Check if user is admin
-const isCircleAdmin = async (userId, circleId) => {
-  const membership = await CircleMember.findOne({
+// Check if user is admin/moderator of a circle
+const isAdmin = async (userId, circleId) => {
+  const member = await CircleMember.findOne({
     where: { 
       userId, 
       circleId, 
@@ -374,62 +18,226 @@ const isCircleAdmin = async (userId, circleId) => {
       status: 'active'
     }
   });
-  return !!membership;
+  return !!member;
 };
 
-// Get pending join requests
-exports.getJoinRequests = async (req, res) => {
-  try {
-    const { circleId } = req.params;
-    const userId = req.userId;
+// Check if user is member of a circle
+const isMember = async (userId, circleId) => {
+  const member = await CircleMember.findOne({
+    where: { userId, circleId, status: 'active' }
+  });
+  return !!member;
+};
 
-    // Check if user is admin
-    if (!await isCircleAdmin(userId, circleId)) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can view join requests' 
-      });
+// ==================== CIRCLE MANAGEMENT ====================
+
+// Get all circles
+exports.getAllCircles = async (req, res) => {
+  try {
+    const { category, search, limit = 20, offset = 0 } = req.query;
+    let where = {};
+
+    if (category) where.category = category;
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { tags: { [Op.contains]: [search.toLowerCase()] } }
+      ];
     }
 
-    const requests = await CircleMember.findAll({
-      where: { circleId, status: 'pending' },
-      include: [{
-        model: User,
-        as: 'user',
-        attributes: ['id', 'username', 'displayName', 'profilePicture', 'bio']
-      }],
-      order: [['createdAt', 'ASC']]
+    const circles = await Circle.findAll({
+      where,
+      include: [{ model: User, as: 'creator', attributes: ['username', 'profilePicture'] }],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['memberCount', 'DESC']]
+    });
+
+    res.json({ success: true, circles });
+  } catch (error) {
+    console.error('Get circles error:', error);
+    res.status(500).json({ error: 'Failed to fetch circles' });
+  }
+};
+
+// Get single circle
+exports.getCircle = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    const circle = await Circle.findByPk(circleId, {
+      include: [{ model: User, as: 'creator', attributes: ['username', 'profilePicture'] }]
+    });
+
+    if (!circle) {
+      return res.status(404).json({ error: 'Circle not found' });
+    }
+
+    // Check user membership
+    const membership = await CircleMember.findOne({
+      where: { userId: req.userId, circleId }
     });
 
     res.json({
       success: true,
-      requests: requests.map(r => ({
-        id: r.id,
-        user: r.user,
-        requestedAt: r.createdAt
-      }))
+      circle: {
+        ...circle.toJSON(),
+        userMembership: membership ? membership.status : 'not_member',
+        userRole: membership?.role || null
+      }
     });
   } catch (error) {
-    console.error('Get join requests error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch join requests' 
+    console.error('Get circle error:', error);
+    res.status(500).json({ error: 'Failed to fetch circle' });
+  }
+};
+
+// Create circle
+exports.createCircle = async (req, res) => {
+  try {
+    const { name, description, category, tags, isPrivate } = req.body;
+
+    const circle = await Circle.create({
+      name,
+      description,
+      category,
+      tags: tags || [],
+      isPrivate: isPrivate || false,
+      createdBy: req.userId,
+      memberCount: 1
     });
+
+    // Creator becomes admin
+    await CircleMember.create({
+      userId: req.userId,
+      circleId: circle.id,
+      role: 'admin',
+      status: 'active'
+    });
+
+    res.status(201).json({ success: true, message: 'Circle created', circle });
+  } catch (error) {
+    console.error('Create circle error:', error);
+    res.status(500).json({ error: 'Failed to create circle' });
+  }
+};
+
+// Join circle
+exports.joinCircle = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    
+    const circle = await Circle.findByPk(circleId);
+    if (!circle) {
+      return res.status(404).json({ error: 'Circle not found' });
+    }
+
+    const existing = await CircleMember.findOne({
+      where: { userId: req.userId, circleId }
+    });
+
+    if (existing && existing.status === 'active') {
+      return res.status(400).json({ error: 'Already a member' });
+    }
+
+    if (existing && existing.status === 'pending') {
+      return res.status(400).json({ error: 'Request already pending' });
+    }
+
+    const status = circle.isPrivate ? 'pending' : 'active';
+
+    if (existing) {
+      existing.status = status;
+      existing.joinedAt = new Date();
+      await existing.save();
+    } else {
+      await CircleMember.create({
+        userId: req.userId,
+        circleId,
+        status
+      });
+    }
+
+    if (!circle.isPrivate) {
+      await circle.increment('memberCount');
+    }
+
+    res.json({
+      success: true,
+      message: circle.isPrivate ? 'Join request sent' : 'Joined successfully',
+      status
+    });
+  } catch (error) {
+    console.error('Join circle error:', error);
+    res.status(500).json({ error: 'Failed to join circle' });
+  }
+};
+
+// Leave circle
+exports.leaveCircle = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    
+    const membership = await CircleMember.findOne({
+      where: { userId: req.userId, circleId, status: 'active' }
+    });
+
+    if (!membership) {
+      return res.status(400).json({ error: 'Not a member' });
+    }
+
+    // Check if only admin
+    if (membership.role === 'admin') {
+      const adminCount = await CircleMember.count({
+        where: { circleId, role: 'admin', status: 'active' }
+      });
+      if (adminCount === 1) {
+        return res.status(400).json({ 
+          error: 'Cannot leave. Promote another admin first.' 
+        });
+      }
+    }
+
+    membership.status = 'left';
+    await membership.save();
+    await Circle.decrement('memberCount', { where: { id: circleId } });
+
+    res.json({ success: true, message: 'Left circle' });
+  } catch (error) {
+    console.error('Leave circle error:', error);
+    res.status(500).json({ error: 'Failed to leave circle' });
+  }
+};
+
+// ==================== ADMIN FUNCTIONS ====================
+
+// Get join requests
+exports.getJoinRequests = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+
+    if (!await isAdmin(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
+
+    const requests = await CircleMember.findAll({
+      where: { circleId, status: 'pending' },
+      include: [{ model: User, as: 'user', attributes: ['username', 'displayName', 'profilePicture'] }]
+    });
+
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error('Get requests error:', error);
+    res.status(500).json({ error: 'Failed to fetch requests' });
   }
 };
 
 // Approve join request
-exports.approveJoinRequest = async (req, res) => {
+exports.approveRequest = async (req, res) => {
   try {
     const { circleId, membershipId } = req.params;
-    const userId = req.userId;
 
-    // Check if user is admin
-    if (!await isCircleAdmin(userId, circleId)) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can approve join requests' 
-      });
+    if (!await isAdmin(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Admin only' });
     }
 
     const membership = await CircleMember.findOne({
@@ -437,44 +245,28 @@ exports.approveJoinRequest = async (req, res) => {
     });
 
     if (!membership) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Join request not found' 
-      });
+      return res.status(404).json({ error: 'Request not found' });
     }
 
     membership.status = 'active';
     membership.joinedAt = new Date();
     await membership.save();
-
-    // Increment member count
     await Circle.increment('memberCount', { where: { id: circleId } });
 
-    res.json({
-      success: true,
-      message: 'Join request approved successfully'
-    });
+    res.json({ success: true, message: 'Request approved' });
   } catch (error) {
-    console.error('Approve request error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to approve join request' 
-    });
+    console.error('Approve error:', error);
+    res.status(500).json({ error: 'Failed to approve request' });
   }
 };
 
 // Reject join request
-exports.rejectJoinRequest = async (req, res) => {
+exports.rejectRequest = async (req, res) => {
   try {
     const { circleId, membershipId } = req.params;
-    const userId = req.userId;
 
-    // Check if user is admin
-    if (!await isCircleAdmin(userId, circleId)) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can reject join requests' 
-      });
+    if (!await isAdmin(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Admin only' });
     }
 
     const membership = await CircleMember.findOne({
@@ -482,79 +274,45 @@ exports.rejectJoinRequest = async (req, res) => {
     });
 
     if (!membership) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Join request not found' 
-      });
+      return res.status(404).json({ error: 'Request not found' });
     }
 
     membership.status = 'rejected';
     await membership.save();
 
-    res.json({
-      success: true,
-      message: 'Join request rejected'
-    });
+    res.json({ success: true, message: 'Request rejected' });
   } catch (error) {
-    console.error('Reject request error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to reject join request' 
-    });
+    console.error('Reject error:', error);
+    res.status(500).json({ error: 'Failed to reject request' });
   }
 };
 
-// Update circle details
+// Update circle
 exports.updateCircle = async (req, res) => {
   try {
     const { circleId } = req.params;
-    const userId = req.userId;
     const { name, description, category, tags, isPrivate } = req.body;
 
-    // Check if user is admin
-    if (!await isCircleAdmin(userId, circleId)) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can edit circle details' 
-      });
+    if (!await isAdmin(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Admin only' });
     }
 
     const circle = await Circle.findByPk(circleId);
-
     if (!circle) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Circle not found' 
-      });
+      return res.status(404).json({ error: 'Circle not found' });
     }
 
-    // Update fields
-    if (name !== undefined) circle.name = name;
+    if (name) circle.name = name;
     if (description !== undefined) circle.description = description;
-    if (category !== undefined) circle.category = category;
-    if (tags !== undefined) circle.tags = tags;
+    if (category) circle.category = category;
+    if (tags) circle.tags = tags;
     if (isPrivate !== undefined) circle.isPrivate = isPrivate;
 
     await circle.save();
-
-    res.json({
-      success: true,
-      message: 'Circle updated successfully',
-      circle: {
-        id: circle.id,
-        name: circle.name,
-        description: circle.description,
-        category: circle.category,
-        tags: circle.tags,
-        isPrivate: circle.isPrivate
-      }
-    });
+    res.json({ success: true, message: 'Circle updated', circle });
   } catch (error) {
     console.error('Update circle error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to update circle' 
-    });
+    res.status(500).json({ error: 'Failed to update circle' });
   }
 };
 
@@ -562,14 +320,9 @@ exports.updateCircle = async (req, res) => {
 exports.removeMember = async (req, res) => {
   try {
     const { circleId, memberId } = req.params;
-    const userId = req.userId;
 
-    // Check if user is admin
-    if (!await isCircleAdmin(userId, circleId)) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can remove members' 
-      });
+    if (!await isAdmin(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Admin only' });
     }
 
     const membership = await CircleMember.findOne({
@@ -577,56 +330,36 @@ exports.removeMember = async (req, res) => {
     });
 
     if (!membership) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Member not found' 
-      });
+      return res.status(404).json({ error: 'Member not found' });
     }
 
-    // Cannot remove other admins
-    if (membership.role === 'admin' && memberId !== userId) {
-      return res.status(400).json({ 
-        error: 'Cannot remove',
-        message: 'Cannot remove another admin. Demote them first.' 
-      });
+    if (membership.role === 'admin' && memberId !== req.userId) {
+      return res.status(400).json({ error: 'Cannot remove another admin' });
     }
 
     membership.status = 'left';
     await membership.save();
-
-    // Decrement member count
     await Circle.decrement('memberCount', { where: { id: circleId } });
 
-    res.json({
-      success: true,
-      message: 'Member removed successfully'
-    });
+    res.json({ success: true, message: 'Member removed' });
   } catch (error) {
     console.error('Remove member error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to remove member' 
-    });
+    res.status(500).json({ error: 'Failed to remove member' });
   }
 };
 
-// Promote member to admin
+// Promote member
 exports.promoteMember = async (req, res) => {
   try {
     const { circleId, memberId } = req.params;
-    const { role } = req.body; // 'admin' or 'moderator'
-    const userId = req.userId;
+    const { role } = req.body;
 
-    // Check if user is admin
-    const requesterMembership = await CircleMember.findOne({
-      where: { userId, circleId, role: 'admin', status: 'active' }
+    const isRequesterAdmin = await CircleMember.findOne({
+      where: { userId: req.userId, circleId, role: 'admin', status: 'active' }
     });
 
-    if (!requesterMembership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'Only admins can promote members' 
-      });
+    if (!isRequesterAdmin) {
+      return res.status(403).json({ error: 'Admin only' });
     }
 
     const membership = await CircleMember.findOne({
@@ -634,137 +367,69 @@ exports.promoteMember = async (req, res) => {
     });
 
     if (!membership) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Member not found' 
-      });
+      return res.status(404).json({ error: 'Member not found' });
     }
 
     if (!['admin', 'moderator'].includes(role)) {
-      return res.status(400).json({ 
-        error: 'Invalid role',
-        message: 'Role must be admin or moderator' 
-      });
+      return res.status(400).json({ error: 'Invalid role' });
     }
 
     membership.role = role;
     await membership.save();
 
-    res.json({
-      success: true,
-      message: `Member promoted to ${role} successfully`
-    });
+    res.json({ success: true, message: `Promoted to ${role}` });
   } catch (error) {
-    console.error('Promote member error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to promote member' 
-    });
+    console.error('Promote error:', error);
+    res.status(500).json({ error: 'Failed to promote member' });
   }
 };
 
-// Get circle members
-exports.getCircleMembers = async (req, res) => {
+// Get members
+exports.getMembers = async (req, res) => {
   try {
     const { circleId } = req.params;
-    const userId = req.userId;
 
-    // Check if user is member
-    const userMembership = await CircleMember.findOne({
-      where: { userId, circleId, status: 'active' }
-    });
-
-    if (!userMembership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You must be a member to view members list' 
-      });
+    if (!await isMember(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Members only' });
     }
 
     const members = await CircleMember.findAll({
       where: { circleId, status: 'active' },
-      include: [{
-        model: User,
-        as: 'user',
-        attributes: ['id', 'username', 'displayName', 'profilePicture', 'bio']
-      }],
-      order: [
-        ['role', 'ASC'], // Admins first
-        ['joinedAt', 'ASC']
-      ]
+      include: [{ model: User, as: 'user', attributes: ['username', 'displayName', 'profilePicture'] }],
+      order: [['role', 'ASC'], ['joinedAt', 'ASC']]
     });
 
-    res.json({
-      success: true,
-      members: members.map(m => ({
-        id: m.id,
-        user: m.user,
-        role: m.role,
-        joinedAt: m.joinedAt
-      }))
-    });
+    res.json({ success: true, members });
   } catch (error) {
     console.error('Get members error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch members' 
-    });
+    res.status(500).json({ error: 'Failed to fetch members' });
   }
 };
 
-// ========== CIRCLE FEED (POSTS & COMMENTS) ==========
+// ==================== POSTS ====================
 
-// Get circle posts
-exports.getCirclePosts = async (req, res) => {
+// Get posts
+exports.getPosts = async (req, res) => {
   try {
     const { circleId } = req.params;
-    const userId = req.userId;
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = parseInt(req.query.offset) || 0;
+    const { limit = 20, offset = 0 } = req.query;
 
-    // Check if user is member
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId, status: 'active' }
-    });
-
-    if (!membership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You must be a member to view posts' 
-      });
+    if (!await isMember(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Members only' });
     }
 
     const posts = await CirclePost.findAll({
       where: { circleId },
-      include: [
-        {
-          model: User,
-          as: 'author',
-          attributes: ['id', 'username', 'displayName', 'profilePicture']
-        }
-      ],
-      order: [
-        ['isPinned', 'DESC'],
-        ['createdAt', 'DESC']
-      ],
-      limit: limit + 1,
-      offset
+      include: [{ model: User, as: 'author', attributes: ['username', 'displayName', 'profilePicture'] }],
+      order: [['isPinned', 'DESC'], ['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
     });
 
-    const hasMore = posts.length > limit;
-    const postList = hasMore ? posts.slice(0, -1) : posts;
-
-    res.json({
-      success: true,
-      posts: postList,
-      hasMore
-    });
+    res.json({ success: true, posts });
   } catch (error) {
     console.error('Get posts error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch posts' 
-    });
+    res.status(500).json({ error: 'Failed to fetch posts' });
   }
 };
 
@@ -772,48 +437,27 @@ exports.getCirclePosts = async (req, res) => {
 exports.createPost = async (req, res) => {
   try {
     const { circleId } = req.params;
-    const userId = req.userId;
-    const { title, content, type } = req.body;
+    const { content, type = 'text' } = req.body;
 
-    // Check if user is member
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId, status: 'active' }
-    });
-
-    if (!membership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You must be a member to create posts' 
-      });
+    if (!await isMember(req.userId, circleId)) {
+      return res.status(403).json({ error: 'Members only' });
     }
 
     const post = await CirclePost.create({
       circleId,
-      userId,
+      userId: req.userId,
       content,
-      type: type || 'text',
-      attachments: []
+      type
     });
 
-    const postWithAuthor = await CirclePost.findByPk(post.id, {
-      include: [{
-        model: User,
-        as: 'author',
-        attributes: ['id', 'username', 'displayName', 'profilePicture']
-      }]
+    const fullPost = await CirclePost.findByPk(post.id, {
+      include: [{ model: User, as: 'author', attributes: ['username', 'displayName', 'profilePicture'] }]
     });
 
-    res.status(201).json({
-      success: true,
-      message: 'Post created successfully',
-      post: postWithAuthor
-    });
+    res.status(201).json({ success: true, message: 'Post created', post: fullPost });
   } catch (error) {
     console.error('Create post error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to create post' 
-    });
+    res.status(500).json({ error: 'Failed to create post' });
   }
 };
 
@@ -821,40 +465,24 @@ exports.createPost = async (req, res) => {
 exports.updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const userId = req.userId;
     const { content } = req.body;
 
     const post = await CirclePost.findByPk(postId);
-
     if (!post) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Post not found' 
-      });
+      return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Only author can edit
-    if (post.userId !== userId) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You can only edit your own posts' 
-      });
+    if (post.userId !== req.userId) {
+      return res.status(403).json({ error: 'Can only edit your own posts' });
     }
 
     post.content = content;
     await post.save();
 
-    res.json({
-      success: true,
-      message: 'Post updated successfully',
-      post
-    });
+    res.json({ success: true, message: 'Post updated', post });
   } catch (error) {
     console.error('Update post error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to update post' 
-    });
+    res.status(500).json({ error: 'Failed to update post' });
   }
 };
 
@@ -862,97 +490,54 @@ exports.updatePost = async (req, res) => {
 exports.deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const userId = req.userId;
 
     const post = await CirclePost.findByPk(postId);
-
     if (!post) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Post not found' 
-      });
+      return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Author or circle admin can delete
-    const isAdmin = await isCircleAdmin(userId, post.circleId);
-
-    if (post.userId !== userId && !isAdmin) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You can only delete your own posts' 
-      });
+    const canDelete = post.userId === req.userId || await isAdmin(req.userId, post.circleId);
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Cannot delete this post' });
     }
 
     await post.destroy();
-
-    res.json({
-      success: true,
-      message: 'Post deleted successfully'
-    });
+    res.json({ success: true, message: 'Post deleted' });
   } catch (error) {
     console.error('Delete post error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to delete post' 
-    });
+    res.status(500).json({ error: 'Failed to delete post' });
   }
 };
 
-// Get post comments
-exports.getPostComments = async (req, res) => {
+// ==================== COMMENTS ====================
+
+// Get comments
+exports.getComments = async (req, res) => {
   try {
     const { postId } = req.params;
-    const userId = req.userId;
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = parseInt(req.query.offset) || 0;
+    const { limit = 50, offset = 0 } = req.query;
 
     const post = await CirclePost.findByPk(postId);
-
     if (!post) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Post not found' 
-      });
+      return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Check if user is circle member
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId: post.circleId, status: 'active' }
-    });
-
-    if (!membership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You must be a member to view comments' 
-      });
+    if (!await isMember(req.userId, post.circleId)) {
+      return res.status(403).json({ error: 'Members only' });
     }
 
     const comments = await PostComment.findAll({
       where: { postId },
-      include: [{
-        model: User,
-        as: 'author',
-        attributes: ['id', 'username', 'displayName', 'profilePicture']
-      }],
+      include: [{ model: User, as: 'author', attributes: ['username', 'displayName', 'profilePicture'] }],
       order: [['createdAt', 'ASC']],
-      limit: limit + 1,
-      offset
+      limit: parseInt(limit),
+      offset: parseInt(offset)
     });
 
-    const hasMore = comments.length > limit;
-    const commentList = hasMore ? comments.slice(0, -1) : comments;
-
-    res.json({
-      success: true,
-      comments: commentList,
-      hasMore
-    });
+    res.json({ success: true, comments });
   } catch (error) {
     console.error('Get comments error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to fetch comments' 
-    });
+    res.status(500).json({ error: 'Failed to fetch comments' });
   }
 };
 
@@ -960,58 +545,28 @@ exports.getPostComments = async (req, res) => {
 exports.createComment = async (req, res) => {
   try {
     const { postId } = req.params;
-    const userId = req.userId;
     const { content } = req.body;
 
     const post = await CirclePost.findByPk(postId);
-
     if (!post) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Post not found' 
-      });
+      return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Check if user is circle member
-    const membership = await CircleMember.findOne({
-      where: { userId, circleId: post.circleId, status: 'active' }
-    });
-
-    if (!membership) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You must be a member to comment' 
-      });
+    if (!await isMember(req.userId, post.circleId)) {
+      return res.status(403).json({ error: 'Members only' });
     }
 
-    const comment = await PostComment.create({
-      postId,
-      userId,
-      content
-    });
-
-    // Increment comment count
+    const comment = await PostComment.create({ postId, userId: req.userId, content });
     await post.increment('commentCount');
 
-    const commentWithAuthor = await PostComment.findByPk(comment.id, {
-      include: [{
-        model: User,
-        as: 'author',
-        attributes: ['id', 'username', 'displayName', 'profilePicture']
-      }]
+    const fullComment = await PostComment.findByPk(comment.id, {
+      include: [{ model: User, as: 'author', attributes: ['username', 'displayName', 'profilePicture'] }]
     });
 
-    res.status(201).json({
-      success: true,
-      message: 'Comment added successfully',
-      comment: commentWithAuthor
-    });
+    res.status(201).json({ success: true, message: 'Comment added', comment: fullComment });
   } catch (error) {
     console.error('Create comment error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to create comment' 
-    });
+    res.status(500).json({ error: 'Failed to create comment' });
   }
 };
 
@@ -1019,40 +574,24 @@ exports.createComment = async (req, res) => {
 exports.updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.userId;
     const { content } = req.body;
 
     const comment = await PostComment.findByPk(commentId);
-
     if (!comment) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Comment not found' 
-      });
+      return res.status(404).json({ error: 'Comment not found' });
     }
 
-    // Only author can edit
-    if (comment.userId !== userId) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You can only edit your own comments' 
-      });
+    if (comment.userId !== req.userId) {
+      return res.status(403).json({ error: 'Can only edit your own comments' });
     }
 
     comment.content = content;
     await comment.save();
 
-    res.json({
-      success: true,
-      message: 'Comment updated successfully',
-      comment
-    });
+    res.json({ success: true, message: 'Comment updated', comment });
   } catch (error) {
     console.error('Update comment error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to update comment' 
-    });
+    res.status(500).json({ error: 'Failed to update comment' });
   }
 };
 
@@ -1060,46 +599,26 @@ exports.updateComment = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.userId;
 
     const comment = await PostComment.findByPk(commentId, {
-      include: [{
-        model: CirclePost,
-        as: 'post'
-      }]
+      include: [{ model: CirclePost, as: 'post' }]
     });
 
     if (!comment) {
-      return res.status(404).json({ 
-        error: 'Not found',
-        message: 'Comment not found' 
-      });
+      return res.status(404).json({ error: 'Comment not found' });
     }
 
-    // Author or circle admin can delete
-    const isAdmin = await isCircleAdmin(userId, comment.post.circleId);
-
-    if (comment.userId !== userId && !isAdmin) {
-      return res.status(403).json({ 
-        error: 'Forbidden',
-        message: 'You can only delete your own comments' 
-      });
+    const canDelete = comment.userId === req.userId || await isAdmin(req.userId, comment.post.circleId);
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Cannot delete this comment' });
     }
 
     await comment.destroy();
-
-    // Decrement comment count
     await CirclePost.decrement('commentCount', { where: { id: comment.postId } });
 
-    res.json({
-      success: true,
-      message: 'Comment deleted successfully'
-    });
+    res.json({ success: true, message: 'Comment deleted' });
   } catch (error) {
     console.error('Delete comment error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: 'Failed to delete comment' 
-    });
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 };
