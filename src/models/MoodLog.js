@@ -16,16 +16,9 @@ const MoodLog = sequelize.define('MoodLog', {
     }
   },
   mood: {
-    type: DataTypes.ENUM('great', 'good', 'okay', 'bad', 'terrible'),
-    allowNull: false
-  },
-  moodScore: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.ENUM('good', 'neutral', 'bad', 'not_added'),
     allowNull: false,
-    validate: {
-      min: 1,
-      max: 5
-    }
+    defaultValue: 'not_added'
   },
   emotions: {
     type: DataTypes.ARRAY(DataTypes.STRING(30)),
@@ -42,22 +35,26 @@ const MoodLog = sequelize.define('MoodLog', {
       len: [0, 1000]
     }
   },
+  visibility: {
+    type: DataTypes.ENUM('private', 'circles', 'public'),
+    defaultValue: 'private'
+  },
+  sharedCircles: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
+    defaultValue: []
+  },
   date: {
     type: DataTypes.DATEONLY,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
-  },
-  time: {
-    type: DataTypes.TIME,
     allowNull: false,
     defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'mood_logs',
   indexes: [
-    { unique: true, fields: ['user_id', 'date'] },  // ✅ Fixed
-    { fields: ['user_id', 'created_at'] },          // ✅ Fixed
-    { fields: ['date'] }
+    { unique: true, fields: ['user_id', 'date'] },
+    { fields: ['user_id', 'created_at'] },
+    { fields: ['date'] },
+    { fields: ['mood'] }
   ]
 });
 

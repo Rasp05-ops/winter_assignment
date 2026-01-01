@@ -1,4 +1,3 @@
-// src/controllers/circleController.js
 const Circle = require('../models/Circle');
 const CircleMember = require('../models/CircleMember');
 const CirclePost = require('../models/CirclePost');
@@ -6,9 +5,7 @@ const PostComment = require('../models/PostComment');
 const User = require('../models/User');
 const { Op } = require('sequelize');
 
-// ==================== HELPER FUNCTIONS ====================
 
-// Check if user is admin/moderator of a circle
 const isAdmin = async (userId, circleId) => {
   const member = await CircleMember.findOne({
     where: { 
@@ -21,7 +18,6 @@ const isAdmin = async (userId, circleId) => {
   return !!member;
 };
 
-// Check if user is member of a circle
 const isMember = async (userId, circleId) => {
   const member = await CircleMember.findOne({
     where: { userId, circleId, status: 'active' }
@@ -29,9 +25,7 @@ const isMember = async (userId, circleId) => {
   return !!member;
 };
 
-// ==================== CIRCLE MANAGEMENT ====================
 
-// Get all circles
 exports.getAllCircles = async (req, res) => {
   try {
     const { category, search, limit = 20, offset = 0 } = req.query;
@@ -60,7 +54,6 @@ exports.getAllCircles = async (req, res) => {
   }
 };
 
-// Get single circle
 exports.getCircle = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -72,7 +65,6 @@ exports.getCircle = async (req, res) => {
       return res.status(404).json({ error: 'Circle not found' });
     }
 
-    // Check user membership
     const membership = await CircleMember.findOne({
       where: { userId: req.userId, circleId }
     });
@@ -91,7 +83,6 @@ exports.getCircle = async (req, res) => {
   }
 };
 
-// Create circle
 exports.createCircle = async (req, res) => {
   try {
     const { name, description, category, tags, isPrivate } = req.body;
@@ -106,7 +97,6 @@ exports.createCircle = async (req, res) => {
       memberCount: 1
     });
 
-    // Creator becomes admin
     await CircleMember.create({
       userId: req.userId,
       circleId: circle.id,
@@ -120,8 +110,6 @@ exports.createCircle = async (req, res) => {
     res.status(500).json({ error: 'Failed to create circle' });
   }
 };
-
-// Join circle
 exports.joinCircle = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -172,7 +160,6 @@ exports.joinCircle = async (req, res) => {
   }
 };
 
-// Leave circle
 exports.leaveCircle = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -185,7 +172,6 @@ exports.leaveCircle = async (req, res) => {
       return res.status(400).json({ error: 'Not a member' });
     }
 
-    // Check if only admin
     if (membership.role === 'admin') {
       const adminCount = await CircleMember.count({
         where: { circleId, role: 'admin', status: 'active' }
@@ -208,9 +194,6 @@ exports.leaveCircle = async (req, res) => {
   }
 };
 
-// ==================== ADMIN FUNCTIONS ====================
-
-// Get join requests
 exports.getJoinRequests = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -231,7 +214,6 @@ exports.getJoinRequests = async (req, res) => {
   }
 };
 
-// Approve join request
 exports.approveRequest = async (req, res) => {
   try {
     const { circleId, membershipId } = req.params;
@@ -260,7 +242,6 @@ exports.approveRequest = async (req, res) => {
   }
 };
 
-// Reject join request
 exports.rejectRequest = async (req, res) => {
   try {
     const { circleId, membershipId } = req.params;
@@ -287,7 +268,6 @@ exports.rejectRequest = async (req, res) => {
   }
 };
 
-// Update circle
 exports.updateCircle = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -316,7 +296,6 @@ exports.updateCircle = async (req, res) => {
   }
 };
 
-// Remove member
 exports.removeMember = async (req, res) => {
   try {
     const { circleId, memberId } = req.params;
@@ -348,7 +327,6 @@ exports.removeMember = async (req, res) => {
   }
 };
 
-// Promote member
 exports.promoteMember = async (req, res) => {
   try {
     const { circleId, memberId } = req.params;
@@ -384,7 +362,6 @@ exports.promoteMember = async (req, res) => {
   }
 };
 
-// Get members
 exports.getMembers = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -406,9 +383,6 @@ exports.getMembers = async (req, res) => {
   }
 };
 
-// ==================== POSTS ====================
-
-// Get posts
 exports.getPosts = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -433,7 +407,6 @@ exports.getPosts = async (req, res) => {
   }
 };
 
-// Create post
 exports.createPost = async (req, res) => {
   try {
     const { circleId } = req.params;
@@ -461,7 +434,6 @@ exports.createPost = async (req, res) => {
   }
 };
 
-// Update post
 exports.updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -486,7 +458,6 @@ exports.updatePost = async (req, res) => {
   }
 };
 
-// Delete post
 exports.deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -509,9 +480,6 @@ exports.deletePost = async (req, res) => {
   }
 };
 
-// ==================== COMMENTS ====================
-
-// Get comments
 exports.getComments = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -541,7 +509,6 @@ exports.getComments = async (req, res) => {
   }
 };
 
-// Create comment
 exports.createComment = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -570,7 +537,6 @@ exports.createComment = async (req, res) => {
   }
 };
 
-// Update comment
 exports.updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -595,7 +561,6 @@ exports.updateComment = async (req, res) => {
   }
 };
 
-// Delete comment
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
