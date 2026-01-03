@@ -7,6 +7,11 @@ const Journal = sequelize.define('Journal', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  // mood: {
+  //   type: DataTypes.ENUM('Good Day', 'Neutral Day', 'Bad Day', 'Not Added'),
+  //   allowNull: true,
+  //   defaultValue: 'Not Added' 
+  // },
   userId: {
     type: DataTypes.UUID,
     allowNull: false,

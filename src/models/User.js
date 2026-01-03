@@ -137,6 +137,12 @@ PostComment.belongsTo(User, { foreignKey: 'userId', as: 'author' });
 
 CirclePost.hasMany(PostComment, { foreignKey: 'postId', as: 'comments' });
 PostComment.belongsTo(CirclePost, { foreignKey: 'postId', as: 'post' });
+const Notification = require('./Notification');
+User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
+User.hasMany(Notification, { foreignKey: 'relatedUserId', as: 'triggeredNotifications' });
+Notification.belongsTo(User, { foreignKey: 'userId', as: 'recipient' });
+Notification.belongsTo(User, { foreignKey: 'relatedUserId', as: 'actor' });
+
 
 
 module.exports = User;

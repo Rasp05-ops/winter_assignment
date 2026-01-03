@@ -5,6 +5,69 @@ const PostComment = require('../models/PostComment');
 const User = require('../models/User');
 const { Op } = require('sequelize');
 
+// Add this helper at the top after imports:
+const { createNotification } = require('./notificationController');
+
+// Update createComment function to send notification:
+// Find the createComment function and add this after comment is created:
+
+exports.createComment = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { content } = req.body;
+
+    const post = await CirclePost.findByPk(postId);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (!await isMember(req.userId, post.circleId)) {
+      return res.status(403).json({ error: 'Members only' });
+    }
+
+    const comment = await PostComment.create({ 
+      postId, 
+      userId: req.userId, 
+      content 
+    });
+    
+    await post.increment('commentCount');
+
+    const fullComment = await PostComment.findByPk(comment.id, {
+      include: [{ 
+        model: User, 
+        as: 'author', 
+        attributes: ['username', 'displayName', 'profilePicture'] 
+      }]
+    });
+
+    // ===== SEND NOTIFICATION TO POST AUTHOR =====
+    if (post.userId !== req.userId) {
+      const commenter = await User.findByPk(req.userId);
+      await createNotification({
+        userId: post.userId,
+        type: 'comment',
+        title: 'New comment on your post',
+        message: `${commenter.displayName || commenter.username} commented on your post`,
+        actionUrl: `/circles/${post.circleId}/posts/${postId}`,
+        relatedUserId: req.userId,
+        relatedItemId: comment.id,
+        relatedItemType: 'comment'
+      });
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Comment added', 
+      comment: fullComment 
+    });
+  } catch (error) {
+    console.error('Create comment error:', error);
+    res.status(500).json({ error: 'Failed to create comment' });
+  }
+};
+
+
 
 const isAdmin = async (userId, circleId) => {
   const member = await CircleMember.findOne({

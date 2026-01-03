@@ -57,7 +57,7 @@ exports.getDashboard = async (req, res) => {
 
     // 3. Get user's joined circles
     const joinedCircles = await CircleMember.findAll({
-      where: { userId, isActive: true },
+      where: { userId, status: 'active' },
       include: [{
         model: Circle,
         as: 'circle',
@@ -99,7 +99,7 @@ exports.getDashboard = async (req, res) => {
     // 5. Get recent journals for quick access
     const recentJournals = await Journal.findAll({
       where: { userId },
-      attributes: ['id', 'title', 'mood', 'createdAt', 'isFavorite'],
+      attributes: ['id', 'title', 'createdAt', 'isFavorite'],
       order: [['createdAt', 'DESC']],
       limit: 5
     });
@@ -167,7 +167,6 @@ exports.getDashboard = async (req, res) => {
         recentJournals: recentJournals.map(journal => ({
           id: journal.id,
           title: journal.title,
-          mood: journal.mood,
           createdAt: journal.createdAt,
           isFavorite: journal.isFavorite
         })),
@@ -247,7 +246,7 @@ exports.getCircleUpdates = async (req, res) => {
 
     // Get user's joined circles
     const joinedCircles = await CircleMember.findAll({
-      where: { userId, isActive: true },
+      where: { userId, status: 'active' },
       attributes: ['circleId']
     });
 

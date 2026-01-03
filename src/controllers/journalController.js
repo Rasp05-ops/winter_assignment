@@ -2,6 +2,7 @@ const Journal = require('../models/Journal');
 const User = require('../models/User');
 const CircleMember = require('../models/CircleMember');
 const { Op } = require('sequelize');
+const { sequelize } = require('../config/database'); 
 
 // Get all journals for current user
 exports.getMyJournals = async (req, res) => {

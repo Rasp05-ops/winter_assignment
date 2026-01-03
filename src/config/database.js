@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
       underscored: true
     }
   }
-);
+); 
 
 module.exports = { sequelize };
 
