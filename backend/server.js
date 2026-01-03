@@ -8,28 +8,28 @@ const PORT = process.env.PORT || 3000;
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✓ Database connection established successfully');
+    console.log(' Database connection established successfully');
     
     // Sync database (create tables if they don't exist)
     await sequelize.sync({ alter: true });
-    console.log('✓ Database synchronized');
+    console.log(' Database synchronized');
     
     app.listen(PORT, () => {
-      console.log(`✓ Server running on port ${PORT}`);
-      console.log(`✓ Environment: ${process.env.NODE_ENV}`);
+      console.log(` Server running on port ${PORT}`);
+      console.log(` Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
-    console.error('✗ Unable to start server:', error);
+    console.error(' Unable to start server:', error);
     process.exit(1);
   }
 };
 
 startServer();
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, closing server...');
-  await sequelize.close();
+const shutdown = async () => {
+  console.log('Shutting down...');
+  await sequelize.close(); 
   process.exit(0);
-});
-
+};
+process.on('SIGTERM', shutdown); 
+process.on('SIGINT', shutdown);
