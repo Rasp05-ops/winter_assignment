@@ -7,23 +7,23 @@ const {
   loginValidation,
   changePasswordValidation 
 } = require('../middleware/validation');
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 
 // Rate limiter for auth routes
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
-  message: {
-    error: 'Too many requests',
-    message: 'Too many authentication attempts. Please try again later'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
+// const authLimiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 5, // 5 requests per window
+//   message: {
+//     error: 'Too many requests',
+//     message: 'Too many authentication attempts. Please try again later'
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false
+// });
 
 // Public routes
-router.post('/signup', authLimiter, signupValidation, authController.signup);
-router.post('/login', authLimiter, loginValidation, authController.login);
+router.post('/signup', signupValidation, authController.signup);
+router.post('/login',  loginValidation, authController.login);
 
 // Protected routes
 router.post('/change-password', authenticate, changePasswordValidation, authController.changePassword);

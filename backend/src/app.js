@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const notificationRoutes = require('./routes/notification');
 
+
 const dashboardRoutes = require('./routes/dashboard');
 const circleRoutes = require('./routes/circle');
 const authRoutes = require('./routes/auth');
@@ -14,15 +15,25 @@ const searchRoutes = require('./routes/search');
 
 const app = express();
 
+app.use((req, res, next) => {
+    console.log(`🔎 Incoming Request: [${req.method}] ${req.url}`);
+    next();
+});
+app.use(cors({
+  origin: 'http://localhost:3000',  // Frontend URL
+  credentials: true
+}));
+
+
 /* =======================
    Security & Core Middleware
    ======================= */
 app.use(helmet());
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
-}));
+// app.use(cors({
+//   origin: process.env.CORS_ORIGIN || '*',
+//   credentials: true
+// }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
