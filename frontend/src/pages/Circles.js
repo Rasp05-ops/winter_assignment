@@ -35,16 +35,26 @@ function Circles() {
     }
   };
 
-  const handleJoinCircle = async (circleId) => {
+// Update this function to accept 'e' (the event)
+const handleJoinCircle = async (e, circleId) => {
+    e.stopPropagation(); // Prevents clicking the card background
+    
     try {
       await circleAPI.join(circleId);
-      fetchCircles(); // Refresh
+      
+      // If successful:
+      alert("Success! You have joined the circle.");
+      fetchCircles(); // Refresh the list
     } catch (error) {
-      console.error('Failed to join circle:', error);
+      console.error('Join error details:', error);
+      
+      // Get the specific message sent by the backend
+      const serverMessage = error.response?.data?.message || error.response?.data?.error || "Unknown error";
+      
+      // Show it to the user
+      alert(` ${serverMessage}`);
     }
-  };
-
-  return (
+  };  return (
     <div className="min-h-screen bg-gradient-to-br from-dark-bg via-slate-900 to-dark-bg">
       {/* Header */}
       <header className="border-b border-dark-border backdrop-blur-lg bg-dark-card/50 sticky top-0 z-50">
@@ -138,29 +148,26 @@ function Circles() {
                 </div>
 
                 {/* Join Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleJoinCircle(circle.id);
-                  }}
-                  className={`w-full py-2 px-4 rounded-xl font-medium transition-all ${
-                    circle.userMembership === 'active'
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                      : circle.userMembership === 'pending'
-                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
-                      : 'bg-accent-blue/10 text-accent-blue border border-accent-blue/50 hover:bg-accent-blue/20'
-                  }`}
-                  disabled={circle.userMembership === 'active' || circle.userMembership === 'pending'}
-                >
-                  {circle.userMembership === 'active'
-                    ? '✓ Joined'
-                    : circle.userMembership === 'pending'
-                    ? '⏳ Pending'
-                    : circle.isPrivate
-                    ? 'Request to Join'
-                    : 'Join Circle'}
-                </button>
-              </div>
+<button
+  onClick={(e) => handleJoinCircle(e, circle._id || circle.id)} // <--- Pass 'e' here
+  className={`w-full py-2 px-4 rounded-xl font-medium transition-all mt-auto ${
+    circle.userMembership === 'active'
+      ? 'bg-green-500/20 text-green-400 border border-green-500/50 cursor-default'
+      : circle.userMembership === 'pending'
+      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 cursor-default'
+      : 'bg-accent-blue/10 text-accent-blue border border-accent-blue/50 hover:bg-accent-blue/20'
+  }`}
+  // Disable button if already joined or pending
+  disabled={circle.userMembership === 'active' || circle.userMembership === 'pending'}
+>
+  {circle.userMembership === 'active'
+    ? '✓ Joined'
+    : circle.userMembership === 'pending'
+    ? '⏳ Pending'
+    : circle.isPrivate
+    ? 'Request to Join'
+    : 'Join Circle'}
+</button>              </div>
             ))}
           </div>
         )}

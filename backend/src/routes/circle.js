@@ -43,6 +43,7 @@ const createCommentValidation = [
 
 // All routes require authentication
 router.use(authenticate);
+router.get('/my-circles', authenticate, circleController.getMyCircles);
 
 // ===== CIRCLE MANAGEMENT =====
 router.get('/', circleController.getAllCircles);

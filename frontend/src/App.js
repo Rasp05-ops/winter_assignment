@@ -5,8 +5,12 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Circles from './pages/Circles';
 import CircleDetail from './pages/CircleDetail';
-import ProtectedRoute from './components/ProtectedRoute';
-
+import MoodTracker from './pages/MoodTracker';
+import Journal from './pages/Journal';
+import Discovery from './pages/Discovery';
+import PublicJournals from './pages/PublicJournals';
+// import ProtectedRoute from './components/ProtectedRoute';
+import Profile from './pages/Profile';
 function App() {
   return (
     <AuthProvider>
@@ -17,31 +21,66 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           />
+          <Route 
+  path="/profile" 
+  element={
+    // <ProtectedRoute>
+      <Profile />
+    // </ProtectedRoute>
+  } 
+/>
           <Route
             path="/circles"
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Circles />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           />
+          <Route 
+  path="/discovery" 
+  element={
+    // <ProtectedRoute>
+      <Discovery />
+    // </ProtectedRoute>
+  } 
+/>
+<Route path="/community" element={<PublicJournals />} />
+
           <Route
             path="/circles/:id"
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <CircleDetail />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           />
+          <Route
+            path="/mood"
+            element={
+              // <ProtectedRoute>
+                <MoodTracker />
+              // </ProtectedRoute>
+            }
+          />
+          <Route 
+  path="/journal" 
+  element={
+    // <ProtectedRoute>
+      <Journal />
+    // </ProtectedRoute>
+  } 
+/>
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    
   );
 }
 

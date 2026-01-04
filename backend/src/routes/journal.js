@@ -37,14 +37,16 @@ const createJournalValidation = [
 ];
 
 // All routes require authentication
+
 router.use(authenticate);
+router.get('/public', journalController.getPublicJournals);
+
 
 // CRUD operations
 router.get('/', journalController.getMyJournals);
 router.get('/stats', journalController.getJournalStats);
 router.get('/tags', journalController.getAllTags);
 router.get('/tag/:tag', journalController.getJournalsByTag);
-router.get('/public', journalController.getPublicJournals);
 router.get('/circle/:circleId', journalController.getCircleJournals);
 router.get('/:journalId', journalController.getJournal);
 router.post('/', validate(createJournalValidation), journalController.createJournal);

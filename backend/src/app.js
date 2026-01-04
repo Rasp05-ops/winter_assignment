@@ -2,9 +2,9 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+
+// Route Imports
 const notificationRoutes = require('./routes/notification');
-
-
 const dashboardRoutes = require('./routes/dashboard');
 const circleRoutes = require('./routes/circle');
 const authRoutes = require('./routes/auth');
@@ -15,34 +15,38 @@ const searchRoutes = require('./routes/search');
 
 const app = express();
 
+// Request Logger
 app.use((req, res, next) => {
     console.log(`🔎 Incoming Request: [${req.method}] ${req.url}`);
     next();
 });
+
+// CORS Configuration (Allow Frontend)
 app.use(cors({
-  origin: 'http://localhost:3000',  // Frontend URL
+  origin: 'http://localhost:3000',
   credentials: true
 }));
-
 
 /* =======================
    Security & Core Middleware
    ======================= */
-app.use(helmet());
-
-// app.use(cors({
-//   origin: process.env.CORS_ORIGIN || '*',
-//   credentials: true
-// }));
+// Allow images to be loaded from different ports (3001 -> 3000)
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =======================
-   Static Files
+   Static Files (FIXED)
    ======================= */
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Calculate absolute path to avoid ".." confusion
+const uploadsPath = path.join(process.cwd(), 'uploads');
 
+console.log('📂 Serving static files from:', uploadsPath); // This prints the path to your terminal
+
+app.use('/uploads', express.static(uploadsPath));
 /* =======================
    API Routes
    ======================= */
@@ -53,6 +57,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/circles', circleRoutes);
 app.use('/api/mood-logs', moodLogRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/notifications', notificationRoutes); // <--- Moved UP safely
 
 /* =======================
    Health Check
@@ -64,18 +69,6 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-
-/* =======================
-   404 Handler (KEEP LAST)
-   ======================= */
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    message: 'The requested resource was not found'
-  });
-});
-app.use('/api/notifications', notificationRoutes);
-
 
 /* =======================
    Global Error Handler
@@ -102,6 +95,16 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
     message: 'An unexpected error occurred'
+  });
+});
+
+/* =======================
+   404 Handler (MUST BE LAST)
+   ======================= */
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: 'The requested resource was not found'
   });
 });
 

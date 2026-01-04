@@ -318,35 +318,28 @@ exports.getCircleJournals = async (req, res) => {
 };
 
 // Get public journals (feed)
+// Add this to your exports
+// Add this to your exports list
 exports.getPublicJournals = async (req, res) => {
   try {
-    const { limit = 20, offset = 0 } = req.query;
-
     const journals = await Journal.findAll({
-      where: { visibility: 'public' },
-      include: [{
-        model: User,
-        as: 'user',
-        attributes: ['id', 'username', 'displayName', 'profilePicture']
-      }],
-      order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset: parseInt(offset)
+      where: { visibility: 'public' }, // MUST be 'public' (lowercase)
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['username', 'profilePicture'] // Get author details
+        }
+      ],
+      order: [['createdAt', 'DESC']] // Newest first
     });
 
-    res.json({
-      success: true,
-      count: journals.length,
-      journals
-    });
+    res.json(journals);
   } catch (error) {
     console.error('Get public journals error:', error);
-    res.status(500).json({ error: 'Failed to fetch public journals' });
+    res.status(500).json({ message: 'Error fetching public journals' });
   }
-};
-
-// Get journal statistics
-exports.getJournalStats = async (req, res) => {
+};exports.getJournalStats = async (req, res) => {
   try {
     const total = await Journal.count({
       where: { userId: req.userId }
