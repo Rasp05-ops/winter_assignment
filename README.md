@@ -48,8 +48,9 @@ npm ci
 npm run smoke
 ```
 
-The first ML image build can take several minutes and requires substantial
-disk space because it downloads model dependencies and weights. To run only the
+The first ML container startup can take several minutes and requires substantial
+disk space because it downloads model weights into the persistent `ml-models`
+volume. To run only the
 frontend/backend/database path while developing, set `ENABLE_TRANSFORMER=0`
 and `ENABLE_EMBEDDER=0` in the ML service environment; journaling still works
 with graceful ML degradation.

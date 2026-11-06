@@ -18,6 +18,8 @@ services:
     build: ./ml-service
     environment:
       ML_SERVICE_API_KEY: ${ML_SERVICE_API_KEY:-}
+    volumes:
+      - ml-models:/models
     ports: ["8000:8000"]
     restart: unless-stopped
     healthcheck:
@@ -72,3 +74,4 @@ services:
 volumes:
   pgdata:
   uploads:
+  ml-models:

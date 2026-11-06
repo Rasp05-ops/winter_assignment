@@ -11,11 +11,8 @@ COPY . .
 # Train the TF-IDF baseline into the image
 RUN python train.py
 
-# Bake the transformer weights into the image so first start is fast and works offline.
-# (Non-fatal: if the build has no internet the models are downloaded on first start instead.)
-RUN python -c "from transformers import pipeline; pipeline('text-classification', model='j-hartmann/emotion-english-distilroberta-base'); \
-from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" \
-    || echo "model pre-download skipped"
+# Model weights are downloaded on first startup and cached in the mounted model volume.
+# Keeping them out of the image avoids huge BuildKit layers and makes rebuilds reliable.
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s CMD python -c "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"
