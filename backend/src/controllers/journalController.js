@@ -442,7 +442,7 @@ exports.semanticSearch = async (req, res) => {
     return res.status(400).json({ error: 'Query must be 2-500 characters' });
   }
   const limit = clampInt(req.query.limit, 10, 1, 50);
-  const minSimilarity = Math.max(0, Math.min(1, parseFloat(req.query.minSimilarity) || 0.1));
+  const minSimilarity = Math.max(0, Math.min(1, parseFloat(req.query.minSimilarity) || 0.35));
 
   try {
     if (vectorStore.isEnabled()) {

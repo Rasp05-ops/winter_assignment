@@ -210,7 +210,7 @@ scoped to the caller. Journal text is not logged.
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/api/journals` | now returns `analysisStatus` (`done`/`pending`) and sentiment fields |
-| GET | `/api/journals/search/semantic?q=&limit=&minSimilarity=` | `mode: semantic \| keyword` |
+| GET | `/api/journals/search/semantic?q=&limit=&minSimilarity=` | `mode: semantic \| keyword`; default similarity threshold is `0.35` |
 | GET | `/api/journals/:id/similar` | owner only |
 | GET | `/api/journals/sentiment/trend?days=30` | daily averages + `pendingAnalysis` count |
 | POST | `/api/journals/:id/reanalyze` | 503 if ML is down |
