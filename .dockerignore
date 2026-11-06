@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/build
+**/coverage
+**/*.log
+uploads/*
+!backend/uploads/profile-pictures/default-avatar.png

@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: mindbridge-ml
+    runtime: docker
+    rootDir: ml-service
+    healthCheckPath: /health
+    envVars:
+      - key: ENABLE_TRANSFORMER
+        value: "1"
+      - key: ENABLE_EMBEDDER
+        value: "1"
+      - key: ML_SERVICE_API_KEY
+        generateValue: true
+
+  - type: web
+    name: mindbridge-api
+    runtime: docker
+    rootDir: backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: DB_SYNC_ALTER
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: DB_HOST
+        fromDatabase:
+          name: mindbridge-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: mindbridge-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: mindbridge-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: mindbridge-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mindbridge-db
+          property: password
+      - key: ML_SERVICE_URL
+        sync: false
+      - key: ML_SERVICE_API_KEY
+        fromService:
+          type: web
+          name: mindbridge-ml
+          envVarKey: ML_SERVICE_API_KEY
+      - key: CORS_ORIGINS
+        sync: false
+
+databases:
+  - name: mindbridge-db
+    databaseName: mindbridge
+    user: mindbridge

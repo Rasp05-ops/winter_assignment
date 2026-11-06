@@ -1,0 +1,7 @@
+node_modules
+.env
+.env.*
+uploads/*
+!uploads/profile-pictures/
+!uploads/profile-pictures/default-avatar.png
+*.log

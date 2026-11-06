@@ -1,0 +1,12 @@
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+pydantic>=2.6,<3.0
+numpy>=1.26
+scikit-learn>=1.4,<2.0
+joblib>=1.3
+pandas>=2.1
+# Deep-learning stack (DistilRoBERTa + sentence embeddings).
+# If these are missing/unavailable the service degrades gracefully to TF-IDF + hashing embeddings.
+torch>=2.2
+transformers>=4.40,<5.0
+sentence-transformers>=2.7,<4.0
