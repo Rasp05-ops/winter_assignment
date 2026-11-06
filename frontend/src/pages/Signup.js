@@ -33,8 +33,14 @@ function Signup() {
       await signup(email, username, password);
       navigate('/dashboard');
     } catch (err) {
-        console.log(err);
-      setError(err.response?.data?.error || 'Signup failed. Please try again.');
+      const response = err.response?.data;
+      const validationErrors = response?.errors?.map((item) => item.message).join(' ');
+      setError(
+        validationErrors ||
+        response?.message ||
+        response?.error ||
+        'Signup failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
