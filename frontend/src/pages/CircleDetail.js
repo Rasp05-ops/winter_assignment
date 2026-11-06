@@ -240,13 +240,13 @@ function CircleDetail() {
                 onClick={() => setActiveTab('discussions')}
                 className={`px-4 py-1.5 rounded-md text-sm transition-all ${activeTab === 'discussions' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
               >
-                💬 Discussions
+                 Discussions
               </button>
               <button 
                 onClick={() => setActiveTab('journals')}
                 className={`px-4 py-1.5 rounded-md text-sm transition-all ${activeTab === 'journals' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
               >
-                📖 Shared Journals
+                 Shared Journals
               </button>
             </div>
 
@@ -255,7 +255,7 @@ function CircleDetail() {
                 onClick={handleAdminToggle}
                 className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${showAdminPanel ? 'bg-purple-600 text-white' : 'bg-slate-800 text-purple-400 border border-purple-500/30'}`}
               >
-                {showAdminPanel ? 'Close Admin' : '⚙️'}
+                {showAdminPanel ? 'Close Admin' : 'Admin'}
               </button>
             )}
           </div>
@@ -270,7 +270,7 @@ function CircleDetail() {
              {/* Edit Circle */}
              <div className="mb-6">
                 <div className="flex justify-between mb-2">
-                  <h3 className="font-bold text-white">✏️ Settings</h3>
+                  <h3 className="font-bold text-white"> Settings</h3>
                   <button onClick={() => setEditingCircle(!editingCircle)} className="text-sm text-blue-400">{editingCircle ? 'Cancel' : 'Edit'}</button>
                 </div>
                 {editingCircle && (
@@ -286,14 +286,14 @@ function CircleDetail() {
                {/* Requests */}
                {circle.isPrivate && (
                  <div>
-                   <h3 className="font-bold text-white mb-2">📩 Requests ({joinRequests.length})</h3>
+                   <h3 className="font-bold text-white mb-2"> Requests ({joinRequests.length})</h3>
                    <div className="max-h-40 overflow-y-auto bg-slate-900 p-2 rounded">
                      {joinRequests.map(req => (
                        <div key={req.id} className="flex justify-between items-center mb-2">
                          <span className="text-white text-sm">{req.user?.username}</span>
                          <div className="flex gap-1">
-                           <button onClick={() => adminActions.approve(req.id)} className="text-green-400 bg-green-900/30 px-2 py-0.5 rounded text-xs">✓</button>
-                           <button onClick={() => adminActions.reject(req.id)} className="text-red-400 bg-red-900/30 px-2 py-0.5 rounded text-xs">✗</button>
+                           <button onClick={() => adminActions.approve(req.id)} className="text-green-400 bg-green-900/30 px-2 py-0.5 rounded text-xs">Approve</button>
+                           <button onClick={() => adminActions.reject(req.id)} className="text-red-400 bg-red-900/30 px-2 py-0.5 rounded text-xs">Reject</button>
                          </div>
                        </div>
                      ))}
@@ -302,11 +302,11 @@ function CircleDetail() {
                )}
                {/* Members */}
                <div>
-                 <h3 className="font-bold text-white mb-2">👥 Members</h3>
+                 <h3 className="font-bold text-white mb-2"> Members</h3>
                  <div className="max-h-40 overflow-y-auto bg-slate-900 p-2 rounded">
                     {members.map(m => (
                       <div key={m.id} className="flex justify-between items-center mb-2">
-                        <span className="text-white text-sm">{m.user?.username} {m.role==='admin' && '👑'}</span>
+                        <span className="text-white text-sm">{m.user?.username}</span>
                         {m.user?.id !== currentUser.id && (
                           <div className="flex gap-1">
                              {m.role !== 'admin' && <button onClick={() => adminActions.promote(m.user.id)} className="text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded text-xs">Promote</button>}
@@ -361,7 +361,7 @@ function CircleDetail() {
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
-                              {post.author?.profilePicture ? <img src={`http://localhost:3001/uploads/profile-pictures/${post.author.profilePicture}`} className="w-full h-full object-cover" alt=""/> : <span className="text-white">👤</span>}
+                              {post.author?.profilePicture ? <img src={`http://localhost:3001/uploads/profile-pictures/${post.author.profilePicture}`} className="w-full h-full object-cover" alt=""/> : <span className="text-white">{post.author?.username?.[0]?.toUpperCase() || 'U'}</span>}
                             </div>
                             <div>
                               <h3 className="font-semibold text-white">{post.author?.displayName || post.author?.username}</h3>
@@ -370,8 +370,8 @@ function CircleDetail() {
                           </div>
                           {(isMyPost || circle.userRole === 'admin') && !isEditing && (
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {isMyPost && <button onClick={() => startEditingPost(post)} className="text-blue-400 hover:bg-blue-500/10 p-1 rounded">✏️</button>}
-                              <button onClick={() => handleDeletePost(postId)} className="text-red-400 hover:bg-red-500/10 p-1 rounded">🗑️</button>
+                              {isMyPost && <button onClick={() => startEditingPost(post)} className="text-blue-400 hover:bg-blue-500/10 p-1 rounded">Edit</button>}
+                              <button onClick={() => handleDeletePost(postId)} className="text-red-400 hover:bg-red-500/10 p-1 rounded">Delete</button>
                             </div>
                           )}
                         </div>
@@ -392,7 +392,7 @@ function CircleDetail() {
                         {/* Footer */}
                         <div className="flex items-center gap-4 pt-4 border-t border-slate-700/50">
                           <button onClick={() => toggleComments(postId)} className={`flex items-center gap-2 text-sm transition-colors ${activePostId === postId ? 'text-blue-400' : 'text-slate-400 hover:text-blue-400'}`}>
-                            <span>💬</span> <span>{post.commentCount || 0} Comments</span>
+                            <span>{post.commentCount || 0} Comments</span>
                           </button>
                         </div>
 
@@ -409,7 +409,7 @@ function CircleDetail() {
                                  return (
                                    <div key={commentId} className="flex gap-3 group/comment">
                                      <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 overflow-hidden">
-                                        {comment.user?.profilePicture ? <img src={`http://localhost:3001/uploads/profile-pictures/${comment.user.profilePicture}`} className="w-full h-full object-cover" alt=""/> : <span className="text-xs flex h-full items-center justify-center">👤</span>}
+                                        {comment.user?.profilePicture ? <img src={`http://localhost:3001/uploads/profile-pictures/${comment.user.profilePicture}`} className="w-full h-full object-cover" alt=""/> : <span className="text-xs flex h-full items-center justify-center">{comment.user?.username?.[0]?.toUpperCase() || 'U'}</span>}
                                      </div>
                                      <div className="flex-1 bg-slate-700/50 rounded-lg p-3">
                                        <div className="flex justify-between items-start">
@@ -465,7 +465,7 @@ function CircleDetail() {
                          <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center overflow-hidden">
                             {journal.user?.profilePicture ? (
                                <img src={`http://localhost:3001/uploads/profile-pictures/${journal.user.profilePicture}`} className="w-full h-full object-cover" alt="" />
-                            ) : <span>📖</span>}
+                            ) : <span className="text-sm">Journal</span>}
                          </div>
                          <div>
                             <h3 className="font-bold text-white text-lg">{journal.title}</h3>

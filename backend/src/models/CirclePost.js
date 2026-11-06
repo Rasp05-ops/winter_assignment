@@ -54,8 +54,8 @@ const CirclePost = sequelize.define('CirclePost', {
 }, {
   tableName: 'circle_posts',
   indexes: [
-    { fields: ['circle_id', 'created_at'] },  // ✅ Fixed
-    { fields: ['user_id'] }                    // ✅ Fixed
+    { fields: ['circle_id', 'created_at'] },  //  Fixed
+    { fields: ['user_id'] }                    //  Fixed
   ]
 });
 

@@ -10,13 +10,13 @@ function Circles() {
   const navigate = useNavigate();
 
   const categories = [
-    { value: 'all', label: 'All', emoji: '🌟' },
-    { value: 'anxiety', label: 'Anxiety', emoji: '😰' },
-    { value: 'depression', label: 'Depression', emoji: '😔' },
-    { value: 'stress', label: 'Stress', emoji: '😓' },
-    { value: 'mindfulness', label: 'Mindfulness', emoji: '🧘' },
-    { value: 'productivity', label: 'Productivity', emoji: '⚡' },
-    { value: 'relationships', label: 'Relationships', emoji: '❤️' },
+    { value: 'all', label: 'All' },
+    { value: 'anxiety', label: 'Anxiety' },
+    { value: 'depression', label: 'Depression' },
+    { value: 'stress', label: 'Stress' },
+    { value: 'mindfulness', label: 'Mindfulness' },
+    { value: 'productivity', label: 'Productivity' },
+    { value: 'relationships', label: 'Relationships' },
   ];
 
   useEffect(() => {
@@ -87,7 +87,7 @@ const handleJoinCircle = async (e, circleId) => {
                   : 'bg-dark-card text-gray-400 hover:text-white border border-dark-border'
               }`}
             >
-              {cat.emoji} {cat.label}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -117,7 +117,7 @@ const handleJoinCircle = async (e, circleId) => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center text-2xl">
-                      {categories.find(c => c.value === circle.category)?.emoji || '🎯'}
+                      {categories.find(c => c.value === circle.category)?.label || 'Circle'}
                     </div>
                     <div>
                       <h3 className="text-white font-semibold group-hover:text-accent-blue transition-colors">
@@ -128,7 +128,7 @@ const handleJoinCircle = async (e, circleId) => {
                   </div>
                   {circle.isPrivate && (
                     <span className="px-2 py-1 bg-yellow-500/10 text-yellow-500 text-xs rounded-lg">
-                      🔒 Private
+                       Private
                     </span>
                   )}
                 </div>
@@ -161,9 +161,9 @@ const handleJoinCircle = async (e, circleId) => {
   disabled={circle.userMembership === 'active' || circle.userMembership === 'pending'}
 >
   {circle.userMembership === 'active'
-    ? '✓ Joined'
+    ? 'Joined'
     : circle.userMembership === 'pending'
-    ? '⏳ Pending'
+    ? 'Pending'
     : circle.isPrivate
     ? 'Request to Join'
     : 'Join Circle'}
@@ -254,13 +254,13 @@ function CreateCircleModal({ onClose, onSuccess }) {
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-3 bg-dark-card border border-dark-border rounded-xl text-white focus:border-accent-blue outline-none"
             >
-              <option value="anxiety">😰 Anxiety</option>
-              <option value="depression">😔 Depression</option>
-              <option value="stress">😓 Stress</option>
-              <option value="mindfulness">🧘 Mindfulness</option>
-              <option value="productivity">⚡ Productivity</option>
-              <option value="relationships">❤️ Relationships</option>
-              <option value="other">🌟 Other</option>
+              <option value="anxiety"> Anxiety</option>
+              <option value="depression"> Depression</option>
+              <option value="stress"> Stress</option>
+              <option value="mindfulness"> Mindfulness</option>
+              <option value="productivity"> Productivity</option>
+              <option value="relationships"> Relationships</option>
+              <option value="other"> Other</option>
             </select>
           </div>
 

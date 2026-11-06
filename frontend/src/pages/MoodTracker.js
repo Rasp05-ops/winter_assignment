@@ -17,9 +17,9 @@ function MoodTracker() {
   });
 
   const moods = [
-    { value: 'good', emoji: '😊', label: 'Good', color: 'from-green-500 to-emerald-500', bg: 'bg-green-500/20' },
-    { value: 'neutral', emoji: '😐', label: 'Neutral', color: 'from-yellow-500 to-orange-500', bg: 'bg-yellow-500/20' },
-    { value: 'bad', emoji: '😢', label: 'Bad', color: 'from-red-500 to-rose-500', bg: 'bg-red-500/20' },
+    { value: 'good', label: 'Good', color: 'from-green-500 to-emerald-500', bg: 'bg-green-500/20' },
+    { value: 'neutral', label: 'Neutral', color: 'from-yellow-500 to-orange-500', bg: 'bg-yellow-500/20' },
+    { value: 'bad', label: 'Bad', color: 'from-red-500 to-rose-500', bg: 'bg-red-500/20' },
   ];
 
   const emotions = ['happy', 'sad', 'anxious', 'calm', 'energetic', 'tired', 'stressed', 'peaceful'];
@@ -65,7 +65,7 @@ function MoodTracker() {
   };
 
   const getMoodEmoji = (mood) => {
-    return moods.find(m => m.value === mood)?.emoji || '😐';
+    return moods.find(m => m.value === mood)?.label || '';
   };
 
   const getMoodColor = (mood) => {
@@ -126,7 +126,7 @@ function MoodTracker() {
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              📅 Calendar
+               Calendar
             </button>
             <button
               onClick={() => setView('stats')}
@@ -136,7 +136,7 @@ function MoodTracker() {
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              📊 Statistics
+               Statistics
             </button>
           </div>
         </div>
@@ -155,15 +155,15 @@ function MoodTracker() {
                 <div className="text-3xl font-bold text-white">{calendar?.stats?.total || 0}</div>
               </div>
               <div className="glass rounded-2xl p-6 border border-green-500/30 bg-green-500/5">
-                <div className="text-gray-400 text-sm mb-2">😊 Good Days</div>
+                <div className="text-gray-400 text-sm mb-2"> Good Days</div>
                 <div className="text-3xl font-bold text-green-400">{calendar?.stats?.good || 0}</div>
               </div>
               <div className="glass rounded-2xl p-6 border border-yellow-500/30 bg-yellow-500/5">
-                <div className="text-gray-400 text-sm mb-2">😐 Neutral Days</div>
+                <div className="text-gray-400 text-sm mb-2"> Neutral Days</div>
                 <div className="text-3xl font-bold text-yellow-400">{calendar?.stats?.neutral || 0}</div>
               </div>
               <div className="glass rounded-2xl p-6 border border-red-500/30 bg-red-500/5">
-                <div className="text-gray-400 text-sm mb-2">😢 Bad Days</div>
+                <div className="text-gray-400 text-sm mb-2"> Bad Days</div>
                 <div className="text-3xl font-bold text-red-400">{calendar?.stats?.bad || 0}</div>
               </div>
             </div>
@@ -183,7 +183,7 @@ function MoodTracker() {
                     title={day.date}
                   >
                     <div className="text-xs text-gray-500 mb-1">{day.dayName}</div>
-                    <div className="text-2xl">{day.mood ? getMoodEmoji(day.mood) : '•'}</div>
+                    <div className="text-sm font-medium">{day.mood ? getMoodEmoji(day.mood) : 'No entry'}</div>
                     <div className="text-xs text-gray-400 mt-1">{day.dayNum}</div>
                   </div>
                 ))}
@@ -223,11 +223,11 @@ function MoodTracker() {
                 </div>
                 <div>
                   <div className="text-gray-400 text-sm mb-1">Current Streak</div>
-                  <div className="text-3xl font-bold text-accent-purple">{stats?.stats?.streaks?.current || 0} 🔥</div>
+                  <div className="text-3xl font-bold text-accent-purple">{stats?.stats?.streaks?.current || 0} </div>
                 </div>
                 <div>
                   <div className="text-gray-400 text-sm mb-1">Longest Streak</div>
-                  <div className="text-3xl font-bold text-accent-pink">{stats?.stats?.streaks?.longest || 0} ⭐</div>
+                  <div className="text-3xl font-bold text-accent-pink">{stats?.stats?.streaks?.longest || 0}</div>
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@ function MoodTracker() {
                     <div key={mood.value}>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
-                          <span className="text-2xl">{mood.emoji}</span>
+                          <span className="text-sm">{mood.label}</span>
                           <span className="text-white">{mood.label}</span>
                         </div>
                         <span className="text-gray-400">{percentage}%</span>
@@ -311,7 +311,7 @@ function MoodTracker() {
                         : 'border-dark-border hover:border-accent-blue/50'
                     }`}
                   >
-                    <div className="text-4xl mb-2">{mood.emoji}</div>
+                    <div className="text-lg mb-2">{mood.label}</div>
                     <div className="text-white text-sm font-medium">{mood.label}</div>
                   </button>
                 ))}

@@ -142,14 +142,14 @@ function Profile() {
                    />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center text-4xl">
-                    {user.displayName?.[0] || user.username?.[0] || '👤'}
+                    {user.displayName?.[0] || user.username?.[0] || ''}
                   </div>
                 )}
               </div>
               
               {/* Overlay on Hover */}
               <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-sm font-medium">📷 Change</span>
+                <span className="text-white text-sm font-medium"> Change</span>
               </div>
             </div>
             

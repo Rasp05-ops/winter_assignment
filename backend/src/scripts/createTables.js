@@ -13,10 +13,10 @@ const createTables = async () => {
     // Sync all models
     await sequelize.sync({ alter: true });
     
-    console.log('✓ All tables created successfully!');
+    console.log(' All tables created successfully!');
     process.exit(0);
   } catch (error) {
-    console.error('✗ Error creating tables:', error);
+    console.error(' Error creating tables:', error);
     process.exit(1);
   }
 };

@@ -3,16 +3,16 @@ import { journalAPI, circleAPI } from '../services/api';
 
 // ---------- ML presentation helpers ----------
 const SENTIMENT_STYLE = {
-  positive: { emoji: '😊', label: 'Positive', cls: 'bg-emerald-900/60 text-emerald-300 border-emerald-700' },
-  neutral: { emoji: '😐', label: 'Neutral', cls: 'bg-slate-700/60 text-slate-300 border-slate-600' },
-  negative: { emoji: '😔', label: 'Negative', cls: 'bg-rose-900/60 text-rose-300 border-rose-700' },
+  positive: { label: 'Positive', cls: 'bg-emerald-900/60 text-emerald-300 border-emerald-700' },
+  neutral: { label: 'Neutral', cls: 'bg-slate-700/60 text-slate-300 border-slate-600' },
+  negative: { label: 'Negative', cls: 'bg-rose-900/60 text-rose-300 border-rose-700' },
 };
 
 function SentimentBadge({ journal }) {
   if (journal.analysisStatus === 'pending') {
     return (
       <span className="text-xs px-2 py-1 rounded border border-slate-600 text-slate-400" title="The analysis service is catching up; this will update automatically">
-        ⏳ Analyzing…
+        Analyzing…
       </span>
     );
   }
@@ -27,7 +27,7 @@ function SentimentBadge({ journal }) {
       className={`text-xs px-2 py-1 rounded border ${st.cls}`}
       title={`Automatic estimate, not a diagnosis. Score ${journal.sentimentScore?.toFixed(2)}`}
     >
-      {st.emoji} {st.label}{confidence}{topEmotion ? ` · ${topEmotion[0]}` : ''}
+      {st.label}{confidence}{topEmotion ? ` · ${topEmotion[0]}` : ''}
     </span>
   );
 }
@@ -214,7 +214,7 @@ function Journal() {
         
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Journal 📔</h1>
+          <h1 className="text-3xl font-bold">My Journal </h1>
           <button 
             onClick={() => setShowModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold"
@@ -325,9 +325,9 @@ function Journal() {
                     onChange={e => setVisibility(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white"
                   >
-                    <option value="private">🔒 Private (Only me)</option>
-                    <option value="public">🌍 Public (Everyone)</option>
-                    <option value="circles">👥 Specific Circles</option>
+                    <option value="private"> Private (Only me)</option>
+                    <option value="public"> Public (Everyone)</option>
+                    <option value="circles"> Specific Circles</option>
                   </select>
                 </div>
 

@@ -26,7 +26,7 @@ function PublicJournals() {
     <div className="min-h-screen bg-slate-900 text-white p-8">
       <header className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-white">← Back</button>
-        <h1 className="text-3xl font-bold">Community Stories 🌍</h1>
+        <h1 className="text-3xl font-bold">Community Stories </h1>
       </header>
 
       {loading ? (
@@ -46,7 +46,7 @@ function PublicJournals() {
                       alt=""
                     />
                   ) : (
-                    <span>👤</span>
+                    <span>Journal</span>
                   )}
                 </div>
                 <div>

@@ -103,9 +103,9 @@ const fetchDashboard = async () => {
   }
 
   const moods = [
-    { value: 'good', emoji: '😊', label: 'Good', color: 'from-green-500 to-emerald-500' },
-    { value: 'neutral', emoji: '😐', label: 'Neutral', color: 'from-yellow-500 to-orange-500' },
-    { value: 'bad', emoji: '😢', label: 'Bad', color: 'from-red-500 to-rose-500' },
+    { value: 'good', label: 'Good', color: 'from-green-500 to-emerald-500' },
+    { value: 'neutral', label: 'Neutral', color: 'from-yellow-500 to-orange-500' },
+    { value: 'bad', label: 'Bad', color: 'from-red-500 to-rose-500' },
   ];
 
   return (
@@ -131,7 +131,6 @@ const fetchDashboard = async () => {
       onClick={() => navigate('/discovery')}
       className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
     >
-      <span>🔍</span>
       <span>Discover</span>
     </button>
               <button onClick={() => navigate('/circles')} className="text-gray-400 hover:text-white transition-colors">
@@ -183,7 +182,7 @@ const fetchDashboard = async () => {
         <div className="mb-10 animate-slide-up flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h2 className="text-4xl font-bold text-white mb-2">
-              Welcome back, {user?.displayName || user?.username}! 👋
+              Welcome back, {user?.displayName || user?.username}!
             </h2>
             <p className="text-gray-400">Here's what's happening with your mental wellness today</p>
           </div>
@@ -192,7 +191,7 @@ const fetchDashboard = async () => {
             onClick={() => navigate('/mood')}
             className="px-6 py-3 bg-gradient-to-r from-accent-blue to-accent-purple text-white rounded-xl font-semibold shadow-lg hover:scale-105 transition-all flex items-center space-x-2"
           >
-            <span>📊</span>
+            <span>Open</span>
             <span>Open Mood Tracker</span>
           </button>
         </div>
@@ -207,7 +206,7 @@ const fetchDashboard = async () => {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-xl">😊</span>
+                <span className="text-sm">Mood</span>
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-1">
@@ -223,7 +222,7 @@ const fetchDashboard = async () => {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-xl">👥</span>
+                <span className="text-sm">Circles</span>
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-1">
@@ -239,7 +238,7 @@ const fetchDashboard = async () => {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-xl">📔</span>
+                <span className="text-sm">Journal</span>
               </div>
             </div>
             <h3 className="text-3xl font-bold text-white mb-1">
@@ -257,7 +256,7 @@ const fetchDashboard = async () => {
           >
             <div className="flex items-center justify-between">
               <div className="text-left">
-                <h3 className="text-xl font-bold mb-1">🌍 Community Stories</h3>
+                <h3 className="text-xl font-bold mb-1"> Community Stories</h3>
                 <p className="text-blue-100">Read public journals from other members</p>
               </div>
               <span className="text-3xl">→</span>
@@ -292,12 +291,12 @@ const fetchDashboard = async () => {
                 >
                   <div className="flex items-center space-x-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center text-2xl flex-shrink-0">
-                      {circle.category === 'anxiety' && '😰'}
-                      {circle.category === 'depression' && '😔'}
-                      {circle.category === 'stress' && '😓'}
-                      {circle.category === 'mindfulness' && '🧘'}
-                      {circle.category === 'productivity' && '⚡'}
-                      {!['anxiety','depression','stress','mindfulness','productivity'].includes(circle.category) && '✨'}
+                      {circle.category === 'anxiety' && ''}
+                      {circle.category === 'depression' && ''}
+                      {circle.category === 'stress' && ''}
+                      {circle.category === 'mindfulness' && ''}
+                      {circle.category === 'productivity' && ''}
+                      {!['anxiety','depression','stress','mindfulness','productivity'].includes(circle.category) && ''}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-white font-semibold group-hover:text-accent-blue transition-colors truncate">
@@ -374,7 +373,7 @@ const fetchDashboard = async () => {
                       : 'border-dark-border hover:border-accent-blue/50 hover:bg-white/5'
                   }`}
                 >
-                  <div className="text-4xl mb-2 transition-transform hover:scale-110">{mood.emoji}</div>
+                  <div className="text-lg mb-2 transition-transform hover:scale-110">{mood.label}</div>
                   <div className="text-white text-sm font-medium">{mood.label}</div>
                 </button>
               ))}

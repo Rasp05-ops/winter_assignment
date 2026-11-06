@@ -120,7 +120,7 @@ function Notifications() {
         onClick={toggleDropdown}
         className="relative p-2 text-gray-400 hover:text-white transition-colors rounded-xl hover:bg-white/5 outline-none"
       >
-        <span className="text-xl">🔔</span>
+        <span className="text-sm">Notifications</span>
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-dark-bg animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -151,7 +151,6 @@ function Notifications() {
               <div className="p-8 text-center text-gray-500 text-sm">Loading...</div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500 flex flex-col items-center">
-                <span className="text-2xl mb-2">🔕</span>
                 <span className="text-sm">No notifications yet</span>
               </div>
             ) : (
@@ -169,7 +168,7 @@ function Notifications() {
                       {n.actor?.profilePicture ? (
                         <img src={n.actor.profilePicture} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        '👤'
+                        ''
                       )}
                     </div>
 

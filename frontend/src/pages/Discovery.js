@@ -138,7 +138,7 @@ const handleSearch = async () => {
               ←
             </button>
             <div className="flex-1 relative">
-              <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
+              <span className="absolute left-4 top-3.5 text-gray-400">Search</span>
               <input
                 type="text"
                 placeholder="Search circles, users, journals..."
@@ -211,7 +211,7 @@ const handleSearch = async () => {
             
             {/* Recommended Section */}
             <section>
-              <h2 className="text-2xl font-bold text-white mb-6">✨ Recommended for You</h2>
+              <h2 className="text-2xl font-bold text-white mb-6"> Recommended for You</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recommended.map(circle => (
                   <CircleCard key={circle.id} circle={circle} onClick={() => navigate(`/circles/${circle.id}`)} onJoin={handleJoinCircle} />
@@ -221,7 +221,7 @@ const handleSearch = async () => {
 
             {/* Trending Section */}
             <section>
-              <h2 className="text-2xl font-bold text-white mb-6">🔥 Trending Now</h2>
+              <h2 className="text-2xl font-bold text-white mb-6"> Trending Now</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trending.map(circle => (
                   <CircleCard key={circle.id} circle={circle} onClick={() => navigate(`/circles/${circle.id}`)} onJoin={handleJoinCircle} />
@@ -253,7 +253,7 @@ const handleSearch = async () => {
                   {results.users.map(user => (
                     <div key={user.id} className="glass p-4 rounded-xl border border-dark-border text-center">
                       <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-gray-700 to-gray-600 mb-2 flex items-center justify-center text-xl">
-                        {user.profilePicture ? <img src={user.profilePicture} alt="" className="rounded-full" /> : '👤'}
+                        {user.profilePicture ? <img src={user.profilePicture} alt="" className="rounded-full" /> : <span>{user.username?.[0]?.toUpperCase() || 'U'}</span>}
                       </div>
                       <div className="font-bold text-white">{user.displayName}</div>
                       <div className="text-xs text-gray-400">@{user.username}</div>
@@ -282,7 +282,7 @@ const handleSearch = async () => {
             {/* Empty State */}
             {(!results.circles?.length && !results.users?.length && !results.journals?.length) && (
               <div className="text-center py-16">
-                <div className="text-4xl mb-4">🤔</div>
+                <div className="text-4xl mb-4"></div>
                 <h3 className="text-white text-xl">No results found</h3>
                 <p className="text-gray-400">Try adjusting your search terms or filters.</p>
               </div>
@@ -308,7 +308,7 @@ function CircleCard({ circle, onClick, onJoin }) {
           </h3>
           <p className="text-xs text-gray-500">{circle.memberCount} members • {circle.category}</p>
         </div>
-        {circle.isPrivate && <span className="text-yellow-500 text-xs border border-yellow-500/30 px-2 py-1 rounded">🔒</span>}
+        {circle.isPrivate && <span className="text-yellow-500 text-xs border border-yellow-500/30 px-2 py-1 rounded">Private</span>}
       </div>
       
       <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">{circle.description}</p>

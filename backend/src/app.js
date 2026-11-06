@@ -17,7 +17,7 @@ const app = express();
 
 // Request Logger
 app.use((req, res, next) => {
-    console.log(`🔎 Incoming Request: [${req.method}] ${req.url}`);
+    console.log(` Incoming Request: [${req.method}] ${req.url}`);
     next();
 });
 
@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: true }));
 // Calculate absolute path to avoid ".." confusion
 const uploadsPath = path.join(process.cwd(), 'uploads');
 
-console.log('📂 Serving static files from:', uploadsPath); // This prints the path to your terminal
+console.log(' Serving static files from:', uploadsPath); // This prints the path to your terminal
 
 app.use('/uploads', express.static(uploadsPath));
 /* =======================

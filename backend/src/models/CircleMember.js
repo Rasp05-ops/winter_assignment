@@ -38,9 +38,9 @@ const CircleMember = sequelize.define('CircleMember', {
 }, {
   tableName: 'circle_members',
   indexes: [
-    { unique: true, fields: ['user_id', 'circle_id'] },  // ✅ Fixed
-    { fields: ['circle_id', 'status'] },                  // ✅ Fixed
-    { fields: ['user_id', 'status'] }                     // ✅ Fixed
+    { unique: true, fields: ['user_id', 'circle_id'] },  //  Fixed
+    { fields: ['circle_id', 'status'] },                  //  Fixed
+    { fields: ['user_id', 'status'] }                     //  Fixed
   ]
 });
 
